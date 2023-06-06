@@ -1,0 +1,25 @@
+version: v1.0.0
+jobs:
+  - name: 总局内部接入服务
+    parameters:
+      service: satc-access-inner
+      environment: gd_inner
+    steps:
+      - name: Clone
+        git:
+          repo: git@gitee.com:guoxinliu/satc-platform.git
+          branch: dev_xinjiang
+      - name: Compile
+        sh:
+          - "cd satc-platform/satc-access-inner; make ENV=gd_inner"
+      - name: Deploy
+        scp:
+          servers:
+            - host: INNER_INNER1
+              user: root # default root
+              port: 22 # default 22
+              password: xxxxx
+              privateKey: xxxxx
+              privateKeyPathAuth: /path/to/file
+          cmd:
+            - "cd satc-platform/satc-access-inner; make ENV=gd_inner"
