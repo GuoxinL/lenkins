@@ -9,12 +9,14 @@ import (
 	"fmt"
 	git "github.com/go-git/go-git/v5"
 	"github.com/mitchellh/mapstructure"
+	"lenkins"
 	"lenkins/home"
 	"os"
+	"path"
 )
 
-func Execute(parameter map[string]interface{}) error {
-	g := &Git{}
+func Execute(cfg lenkins.Config, parameter interface{}) error {
+	g := &Git{cfg: cfg}
 	err := mapstructure.Decode(parameter, g)
 	if err != nil {
 		return fmt.Errorf("failed to configure object mapping. error: %v", err)
@@ -27,12 +29,13 @@ func Execute(parameter map[string]interface{}) error {
 }
 
 type Git struct {
+	cfg    lenkins.Config
 	Repo   string `mapstructure:"repo"`
 	Branch string `mapstructure:"branch"`
 }
 
 func (g *Git) Clone() error {
-	_, err := git.PlainClone(home.HomeDeploy, false, &git.CloneOptions{
+	_, err := git.PlainClone(path.Join(home.HomeDeploy, g.cfg.Jobs), false, &git.CloneOptions{
 		URL:      g.Repo,
 		Progress: os.Stdout,
 	})

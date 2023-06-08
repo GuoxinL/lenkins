@@ -6,8 +6,10 @@ package ssh
 import (
 	"fmt"
 	"github.com/eleztian/go-scp"
+	"github.com/mitchellh/go-homedir"
 	gossh "golang.org/x/crypto/ssh"
-	"lenkins/plugins/ssh/cmd"
+	"io/ioutil"
+	"log"
 	"time"
 )
 
@@ -31,30 +33,44 @@ func (s *Server) GetConfig() *gossh.ClientConfig {
 		config.Auth = []gossh.AuthMethod{gossh.Password(s.Password)}
 	}
 	if len(s.PrivateKey) != 0 {
-		config.Auth = []gossh.AuthMethod{cmd.PublicKeyAuthFunc(s.PrivateKey)}
+		config.Auth = []gossh.AuthMethod{PublicKeyAuthFunc(s.PrivateKey)}
 	}
 	if len(s.PrivateKeyPathAuth) != 0 {
-		config.Auth = []gossh.AuthMethod{cmd.PublicKeyPathAuthFunc(s.PrivateKeyPathAuth)}
+		config.Auth = []gossh.AuthMethod{PublicKeyPathAuthFunc(s.PrivateKeyPathAuth)}
 	}
 	return config
 }
-
-type Cmd struct {
-	Servers []Server `mapstructure:"servers"`
-	Cmd     []string `mapstructure:"cmd"`
-}
-
 func (s *Server) GetCmdClient() (*gossh.Client, error) {
 	config := s.GetConfig()
 	return gossh.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port), config)
 }
 
-type Scp struct {
-	Servers []Server `mapstructure:"servers"`
-	Remote  string   `mapstructure:"remote"`
-}
-
 func (s *Server) GetScpClient() (*scp.SCP, error) {
 	config := s.GetConfig()
 	return scp.New(fmt.Sprintf("%s:%s", s.Host, s.Port), config)
+}
+
+func PublicKeyPathAuthFunc(publicKeyPath string) gossh.AuthMethod {
+	keyPath, err := homedir.Expand(publicKeyPath)
+	if err != nil {
+		log.Fatal("find key's home dir failed", err)
+	}
+	key, err := ioutil.ReadFile(keyPath)
+	if err != nil {
+		log.Fatal("ssh key file read failed", err)
+	}
+	// Create the Signer for this private key.
+	signer, err := gossh.ParsePrivateKey(key)
+	if err != nil {
+		log.Fatal("ssh key signer failed", err)
+	}
+	return gossh.PublicKeys(signer)
+}
+
+func PublicKeyAuthFunc(privateKey string) gossh.AuthMethod {
+	signer, err := gossh.ParsePrivateKey([]byte(privateKey))
+	if err != nil {
+		log.Fatal("ssh key signer failed", err)
+	}
+	return gossh.PublicKeys(signer)
 }

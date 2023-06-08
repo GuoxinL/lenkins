@@ -10,10 +10,10 @@ import "github.com/spf13/viper"
 
 type Config struct {
 	Version string `mapstructure:"version"`
-	Jobs    []Jobs `mapstructure:"jobs"`
+	Jobs    []Job  `mapstructure:"jobs"`
 }
 
-type Jobs struct {
+type Job struct {
 	Name       string            `mapstructure:"name"`
 	Parameters map[string]string `mapstructure:"parameters"`
 	Steps      []Step            `mapstructure:"steps"`

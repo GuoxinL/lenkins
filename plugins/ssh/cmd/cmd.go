@@ -5,16 +5,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"github.com/mitchellh/mapstructure"
-	gossh "golang.org/x/crypto/ssh"
-	"io/ioutil"
+	"lenkins"
 	"lenkins/plugins/ssh"
 	"log"
 )
 
-func Execute(parameter map[string]interface{}) error {
-	g := &ssh.Cmd{}
+func Execute(cfg lenkins.Config, parameter interface{}) error {
+	g := &Cmd{}
 	err := mapstructure.Decode(parameter, g)
 	if err != nil {
 		return fmt.Errorf("failed to configure object mapping. error: %v", err)
@@ -26,6 +24,11 @@ func Execute(parameter map[string]interface{}) error {
 		}
 	}
 	return err
+}
+
+type Cmd struct {
+	Servers []ssh.Server `mapstructure:"servers"`
+	Cmd     []string     `mapstructure:"cmd"`
 }
 
 func RemoteCmds(server ssh.Server, cmds []string) error {
@@ -51,29 +54,4 @@ func RemoteCmds(server ssh.Server, cmds []string) error {
 		fmt.Println(fmt.Sprintf("execute command success. output: %v", output))
 	}
 	return nil
-}
-
-func PublicKeyPathAuthFunc(publicKeyPath string) gossh.AuthMethod {
-	keyPath, err := homedir.Expand(publicKeyPath)
-	if err != nil {
-		log.Fatal("find key's home dir failed", err)
-	}
-	key, err := ioutil.ReadFile(keyPath)
-	if err != nil {
-		log.Fatal("ssh key file read failed", err)
-	}
-	// Create the Signer for this private key.
-	signer, err := gossh.ParsePrivateKey(key)
-	if err != nil {
-		log.Fatal("ssh key signer failed", err)
-	}
-	return gossh.PublicKeys(signer)
-}
-
-func PublicKeyAuthFunc(privateKey string) gossh.AuthMethod {
-	signer, err := gossh.ParsePrivateKey([]byte(privateKey))
-	if err != nil {
-		log.Fatal("ssh key signer failed", err)
-	}
-	return gossh.PublicKeys(signer)
 }

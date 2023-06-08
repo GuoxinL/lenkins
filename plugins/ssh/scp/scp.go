@@ -6,12 +6,13 @@ package scp
 import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
+	"lenkins"
 	"lenkins/home"
 	"lenkins/plugins/ssh"
 )
 
-func Execute(parameter map[string]interface{}) error {
-	g := &ssh.Scp{}
+func Execute(cfg lenkins.Config, parameter interface{}) error {
+	g := &Scp{}
 	err := mapstructure.Decode(parameter, g)
 	if err != nil {
 		return fmt.Errorf("failed to configure object mapping. error: %v", err)
@@ -23,6 +24,11 @@ func Execute(parameter map[string]interface{}) error {
 		}
 	}
 	return nil
+}
+
+type Scp struct {
+	Servers []ssh.Server `mapstructure:"servers"`
+	Remote  string       `mapstructure:"remote"`
 }
 
 func ScpUpload(server ssh.Server, remote string) error {
