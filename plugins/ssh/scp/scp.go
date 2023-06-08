@@ -5,24 +5,36 @@ package scp
 
 import (
 	"fmt"
+	"github.com/mitchellh/mapstructure"
+	"lenkins/home"
 	"lenkins/plugins/ssh"
 )
 
 func Execute(parameter map[string]interface{}) error {
-	//TODO implement me
-	panic("implement me")
+	g := &ssh.Scp{}
+	err := mapstructure.Decode(parameter, g)
+	if err != nil {
+		return fmt.Errorf("failed to configure object mapping. error: %v", err)
+	}
+	for _, server := range g.Servers {
+		err := ScpUpload(server, g.Remote)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func ScpUpload(server ssh.Server) error {
+func ScpUpload(server ssh.Server, remote string) error {
 	client, err := server.GetScpClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("create ssh scp %v client failed. error: %v", "uoload", err)
 	}
 	defer client.Close()
 
-	err = client.Upload("testdata", "/root/scp")
+	err = client.Upload(home.HomeDeploy, remote)
 	if err != nil {
-		return err
+		return fmt.Errorf("%v failed. error: %v", "uoload", err)
 	}
 	fmt.Printf("File %s upload successfully!\n", "remotefile.txt")
 	return nil

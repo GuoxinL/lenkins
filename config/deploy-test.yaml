@@ -1,3 +1,12 @@
+# 变量引用减少重复代码
+server: &server-ref
+  host: INNER_INNER1
+  user: root # default root
+  port: 22 # default 22
+  password: xxxxx
+  privateKey: xxxxx
+  privateKeyPathAuth: /path/to/file
+
 version: v1.0.0
 jobs:
   - name: 总局内部接入服务
@@ -12,14 +21,15 @@ jobs:
       - name: Compile
         sh:
           - "cd satc-platform/satc-access-inner; make ENV=gd_inner"
-      - name: Deploy
+      - name: Send package to Server
         scp:
+          type: upload # upload or download
           servers:
-            - host: INNER_INNER1
-              user: root # default root
-              port: 22 # default 22
-              password: xxxxx
-              privateKey: xxxxx
-              privateKeyPathAuth: /path/to/file
+            - <<: *server-ref
+          remote: "/data/downloads"
+      - name: Deploy
+        cmd:
+          servers:
+            - <<: *server-ref
           cmd:
             - "cd satc-platform/satc-access-inner; make ENV=gd_inner"

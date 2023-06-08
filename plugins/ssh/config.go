@@ -20,11 +20,6 @@ type Server struct {
 	PrivateKeyPathAuth string `mapstructure:"privateKeyPathAuth"`
 }
 
-type Scp struct {
-	Servers []Server `mapstructure:"servers"`
-	Cmd     []string `mapstructure:"cmd"`
-}
-
 func (s *Server) GetConfig() *gossh.ClientConfig {
 	config := &gossh.ClientConfig{
 		Timeout:         time.Second, //ssh 连接time out 时间一秒钟, 如果ssh验证错误 会在一秒内返回
@@ -43,9 +38,20 @@ func (s *Server) GetConfig() *gossh.ClientConfig {
 	}
 	return config
 }
+
+type Cmd struct {
+	Servers []Server `mapstructure:"servers"`
+	Cmd     []string `mapstructure:"cmd"`
+}
+
 func (s *Server) GetCmdClient() (*gossh.Client, error) {
 	config := s.GetConfig()
 	return gossh.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port), config)
+}
+
+type Scp struct {
+	Servers []Server `mapstructure:"servers"`
+	Remote  string   `mapstructure:"remote"`
 }
 
 func (s *Server) GetScpClient() (*scp.SCP, error) {

@@ -9,6 +9,11 @@ import (
 	"lenkins/plugins/ssh/scp"
 )
 
+// TODO plugin validate parameter
+type Plugin interface {
+	Validate() error
+}
+
 type PluginFunc func(map[string]interface{}) error
 
 var (

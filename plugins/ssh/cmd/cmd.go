@@ -4,7 +4,9 @@ Created by guoxin in 2023/6/2 11:47
 package cmd
 
 import (
+	"fmt"
 	"github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/mapstructure"
 	gossh "golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"lenkins/plugins/ssh"
@@ -12,34 +14,41 @@ import (
 )
 
 func Execute(parameter map[string]interface{}) error {
-	//TODO implement me
-	panic("implement me")
+	g := &ssh.Cmd{}
+	err := mapstructure.Decode(parameter, g)
+	if err != nil {
+		return fmt.Errorf("failed to configure object mapping. error: %v", err)
+	}
+	for _, server := range g.Servers {
+		err := RemoteCmds(server, g.Cmd)
+		if err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 func RemoteCmds(server ssh.Server, cmds []string) error {
 	client, err := server.GetCmdClient()
 	if err != nil {
-		//log.Fatal("创建ssh client 失败", err)
-		return err
+		return fmt.Errorf("create ssh cmd client failed. error: %v", err)
 	}
 	defer client.Close()
 
-	//创建ssh-session
 	session, err := client.NewSession()
 	if err != nil {
-		//log.Fatal("创建ssh session 失败", err)
-		return err
+		return fmt.Errorf("create ssh session failed. error: %v", err)
 	}
 	defer session.Close()
-	//执行远程命令
 	for _, cmd := range cmds {
 		log.Println("cmd:", cmd)
-		//output, err := session.CombinedOutput(cmd)
+		output, err := session.CombinedOutput(cmd)
+		fmt.Println(fmt.Sprintf("execute command. %v", cmd))
 		if err != nil {
-			//log.Fatal("cmd failed. error: ", err)
+			fmt.Println(fmt.Sprintf("execute command failed. output: %v", output))
 			return err
 		}
-		//log.Println("cmd output:", string(output))
+		fmt.Println(fmt.Sprintf("execute command success. output: %v", output))
 	}
 	return nil
 }

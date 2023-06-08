@@ -11,34 +11,35 @@ import (
 )
 
 const (
-	Home = "~/.lenkins"
+	HomeDir = "~/.lenkins"
 )
 
 var (
-	Deploy = ""
-	Logs   = ""
+	Home       = ""
+	HomeDeploy = ""
+	HomeLogs   = ""
 )
 
 func init() {
-	homeDir, err := homedir.Expand(Home)
+	Home, err := homedir.Expand(HomeDir)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("home: ", homeDir)
+	fmt.Println("home: ", Home)
 
-	Deploy = path.Join(homeDir, "deploy")
-	err = Mkdir(Deploy)
+	HomeDeploy = path.Join(Home, "deploy")
+	err = Mkdir(HomeDeploy)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("mkdir ", Deploy)
+	fmt.Println("mkdir ", HomeDeploy)
 
-	Logs = path.Join(homeDir, "logs")
-	err = Mkdir(Logs)
+	HomeLogs = path.Join(Home, "logs")
+	err = Mkdir(HomeLogs)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("mkdir ", Logs)
+	fmt.Println("mkdir ", HomeLogs)
 }
 
 func Mkdir(dir string) error {
