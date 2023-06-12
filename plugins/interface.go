@@ -10,4 +10,4 @@ type Plugin interface {
 	Validate() error
 }
 
-type PluginFunc func(lenkins.Config, interface{}) error
+type PluginFunc func(job lenkins.Job, stepIndex int) error

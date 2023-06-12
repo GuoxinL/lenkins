@@ -7,15 +7,22 @@ import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"lenkins"
+	errors "lenkins/err"
 	"lenkins/plugins/ssh"
 	"log"
 )
 
-func Execute(cfg lenkins.Config, parameter interface{}) error {
-	g := &Cmd{}
+const pluginName = "cmd"
+
+func Execute(job lenkins.Job, stepIndex int) error {
+	step, parameter, ok := lenkins.GetConf(job, stepIndex, pluginName)
+	if !ok {
+		return errors.NoPluginUsed
+	}
+	g := &Cmd{step: step}
 	err := mapstructure.Decode(parameter, g)
 	if err != nil {
-		return fmt.Errorf("failed to configure object mapping. error: %v", err)
+		return fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
 	for _, server := range g.Servers {
 		err := RemoteCmds(server, g.Cmd)
@@ -29,18 +36,19 @@ func Execute(cfg lenkins.Config, parameter interface{}) error {
 type Cmd struct {
 	Servers []ssh.Server `mapstructure:"servers"`
 	Cmd     []string     `mapstructure:"cmd"`
+	step    lenkins.Step
 }
 
 func RemoteCmds(server ssh.Server, cmds []string) error {
 	client, err := server.GetCmdClient()
 	if err != nil {
-		return fmt.Errorf("create ssh cmd client failed. error: %v", err)
+		return fmt.Errorf("create ssh cmd client failed. err: %v", err)
 	}
 	defer client.Close()
 
 	session, err := client.NewSession()
 	if err != nil {
-		return fmt.Errorf("create ssh session failed. error: %v", err)
+		return fmt.Errorf("create ssh session failed. err: %v", err)
 	}
 	defer session.Close()
 	for _, cmd := range cmds {

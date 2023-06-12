@@ -4,30 +4,38 @@ import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"lenkins"
+	errors "lenkins/err"
 	"os/exec"
 	"strings"
 )
 
-func Execute(cfg lenkins.Config, parameter interface{}) error {
+const pluginName = "sh"
+
+func Execute(job lenkins.Job, stepIndex int) error {
 	cmds := []string{}
+	step, parameter, ok := lenkins.GetConf(job, stepIndex, pluginName)
+	if !ok {
+		return errors.NoPluginUsed
+	}
+
 	err := mapstructure.Decode(parameter, cmds)
 	if err != nil {
-		return fmt.Errorf("failed to configure object mapping. error: %v", err)
+		return fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
 	for _, cmd := range cmds {
-		err := Command(cmd)
+		err := Command(step, cmd)
 		if err != nil {
-			return fmt.Errorf("sh execute command. error: %v", err)
+			return fmt.Errorf("sh execute command. err: %v", err)
 		}
 	}
 	if err != nil {
-		return fmt.Errorf("git clone failed. error: %v", err)
+		return fmt.Errorf("git clone failed. err: %v", err)
 	}
 	return nil
 }
 
 // 这里为了简化，我省去了stderr和其他信息
-func Command(cmd string) error {
+func Command(_ lenkins.Step, cmd string) error {
 	fmt.Println("execute command. ", cmd)
 	cmd = "-c " + cmd
 	cmds := strings.Split(" ", cmd)

@@ -38,17 +38,11 @@ func main() {
 		fmt.Println(string(marshal))
 		fmt.Println("构建名称：", job.Name)
 		fmt.Println("构建参数：", job.Parameters)
-		for _, step := range job.Steps {
+		for i, step := range job.Steps {
 			fmt.Println("步骤名称：", step.Name)
-			for pluginKey, parameter := range step.Plugin {
-				parameterMap := parameter.(map[string]interface{})
-				fmt.Println("\t插件名称：", pluginKey)
-				fmt.Print("\t插件字段: ")
-				prettyJson(parameter)
-				pluginFunc := PluginMap[pluginKey]
-				err := pluginFunc(parameterMap)
+			for _, pluginFunc := range PluginMap {
+				err := pluginFunc(job, i)
 				if err != nil {
-					fmt.Println(err)
 					return
 				}
 			}

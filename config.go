@@ -22,9 +22,6 @@ type Job struct {
 type Step struct {
 	Name   string                 `mapstructure:"name"`
 	Plugin map[string]interface{} `mapstructure:",remain"`
-	//map[string]interface{}
-	//Sh   []string `mapstructure:"sh,omitempty"`
-	//SSH  ssh.SSH  `mapstructure:"ssh,omitempty"`
 }
 
 func LoadConfig(path string) (*Config, *viper.Viper, error) {
@@ -54,4 +51,10 @@ func InitViper(confPath string) (*viper.Viper, error) {
 	}
 	cmViper.WatchConfig()
 	return cmViper, nil
+}
+
+func GetConf(job Job, stepIndex int, pluginName string) (step Step, parameter interface{}, ok bool) {
+	step = job.Steps[stepIndex]
+	parameter, ok = step.Plugin[pluginName]
+	return
 }

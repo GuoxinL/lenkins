@@ -27,6 +27,7 @@ jobs:
           servers:
             - <<: *server-ref
           remote: "/home/guoxin/Desktop"
+          local: "/home/guoxin/Desktop"
       - name: Deploy
         cmd:
           servers:
