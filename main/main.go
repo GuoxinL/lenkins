@@ -8,21 +8,11 @@ import (
 	"fmt"
 	"lenkins"
 	_ "lenkins/home"
+	"lenkins/log"
 	"lenkins/plugins"
-	"lenkins/plugins/git"
-	"lenkins/plugins/ssh/cmd"
-	"lenkins/plugins/ssh/scp"
+	"lenkins/plugins/init"
+	_ "lenkins/plugins/init"
 )
-
-var (
-	PluginMap = make(map[string]plugins.PluginFunc)
-)
-
-func init() {
-	PluginMap["git"] = git.Execute
-	PluginMap["cmd"] = cmd.Execute
-	PluginMap["scp"] = scp.Execute
-}
 
 func main() {
 	config, _, err := lenkins.LoadConfig("../config/deploy-test.yaml")
@@ -30,6 +20,9 @@ func main() {
 		panic(err)
 		return
 	}
+	var pluginInfos plugins.PluginInfos
+
+	// 构建PluginInfo
 	for _, job := range config.Jobs {
 		marshal, err := json.Marshal(job)
 		if err != nil {
@@ -38,16 +31,27 @@ func main() {
 		fmt.Println(string(marshal))
 		fmt.Println("构建名称：", job.Name)
 		fmt.Println("构建参数：", job.Parameters)
-		for i, step := range job.Steps {
+		for _, step := range job.Steps {
 			fmt.Println("步骤名称：", step.Name)
-			for _, pluginFunc := range PluginMap {
-				err := pluginFunc(job, i)
-				if err != nil {
-					return
-				}
+			for pluginName, pluginParameter := range step.Plugin {
+				pluginInfos = append(pluginInfos,
+					plugins.Build(job.Name, step.Name, job.Parameters, pluginName, pluginParameter))
 			}
 		}
 	}
+	// 初始化插件
+	for _, info := range pluginInfos {
+		newFn, ok := init.Plugins[info.PluginName]
+		if !ok {
+			log.Errorf("plugin %v not support", info.PluginName)
+			return
+		}
+		err := newFn(info)
+		if err != nil {
+			return
+		}
+	}
+
 }
 
 func prettyJson(plugin interface{}) {

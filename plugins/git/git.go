@@ -12,13 +12,37 @@ import (
 	"lenkins"
 	"lenkins/err"
 	"lenkins/home"
+	"lenkins/plugins"
 	"os"
 	"path"
 )
 
 const pluginName = "git"
 
-func Execute(job lenkins.Job, stepIndex int) error {
+type Plugin struct {
+}
+
+func New(info plugins.PluginInfo) error {
+	return nil
+}
+
+func (p Plugin) validate() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Plugin) replace() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Plugin) Execute() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func Execute(cfg lenkins.Config, jobIndex int, stepIndex int, pluginName string) error {
+	job := cfg.Jobs[jobIndex]
 	step, parameter, ok := lenkins.GetConf(job, stepIndex, pluginName)
 	if !ok {
 		return errors.NoPluginUsed

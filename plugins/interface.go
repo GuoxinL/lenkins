@@ -3,11 +3,31 @@ Created by guoxin in 2023/6/5 20:49
 */
 package plugins
 
-import "lenkins"
+type PluginInfos []*PluginInfo
 
-// TODO plugin validate parameter
 type Plugin interface {
-	Validate() error
+	validate() error
+	replace() error
+	Execute() error
 }
 
-type PluginFunc func(job lenkins.Job, stepIndex int) error
+type NewPluginFunc func(*PluginInfo) error
+
+type PluginInfo struct {
+	JobName         string
+	Parameters      map[string]string
+	StepName        string
+	PluginName      string
+	PluginParameter interface{}
+}
+
+func Build(jobName, stepName string, parameters map[string]string,
+	pluginName string, pluginParameter interface{}) *PluginInfo {
+	return &PluginInfo{
+		JobName:         jobName,
+		Parameters:      parameters,
+		StepName:        stepName,
+		PluginName:      pluginName,
+		PluginParameter: pluginParameter,
+	}
+}

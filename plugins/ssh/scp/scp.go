@@ -9,11 +9,34 @@ import (
 	"lenkins"
 	errors "lenkins/err"
 	"lenkins/home"
+	"lenkins/plugins"
 	"lenkins/plugins/ssh"
 	"path"
 )
 
 const pluginName = "scp"
+
+type Plugin struct {
+}
+
+func New(info plugins.PluginInfo) error {
+	return nil
+}
+
+func (p Plugin) validate() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Plugin) replace() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Plugin) Execute() error {
+	//TODO implement me
+	panic("implement me")
+}
 
 func Execute(job lenkins.Job, stepIndex int) error {
 	step, parameter, ok := lenkins.GetConf(job, stepIndex, pluginName)

@@ -5,11 +5,34 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"lenkins"
 	errors "lenkins/err"
+	"lenkins/plugins"
 	"os/exec"
 	"strings"
 )
 
 const pluginName = "sh"
+
+type Plugin struct {
+}
+
+func New(info plugins.PluginInfo) error {
+	return nil
+}
+
+func (p Plugin) validate() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Plugin) replace() error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p Plugin) Execute() error {
+	//TODO implement me
+	panic("implement me")
+}
 
 func Execute(job lenkins.Job, stepIndex int) error {
 	cmds := []string{}
