@@ -19,21 +19,21 @@ const pluginName = "scp"
 type Plugin struct {
 }
 
-func New(info plugins.PluginInfo) error {
-	return nil
+func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
+	return nil, nil
 }
 
-func (p Plugin) validate() error {
+func (p *Plugin) validate() error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Plugin) replace() error {
+func (p *Plugin) replace() error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Plugin) Execute() error {
+func (p *Plugin) Execute() error {
 	//TODO implement me
 	panic("implement me")
 }

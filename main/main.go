@@ -39,17 +39,19 @@ func main() {
 			}
 		}
 	}
+	var pluginInstance []plugins.Plugin
 	// 初始化插件
 	for _, info := range pluginInfos {
-		newFn, ok := init.Plugins[info.PluginName]
+		newPlugin, ok := init.Plugins[info.PluginName]
 		if !ok {
 			log.Errorf("plugin %v not support", info.PluginName)
 			return
 		}
-		err := newFn(info)
+		plugin, err := newPlugin(info)
 		if err != nil {
 			return
 		}
+		pluginInstance = append(pluginInstance, plugin)
 	}
 
 }

@@ -45,3 +45,9 @@ func init() {
 func Mkdir(dir string) error {
 	return os.MkdirAll(dir, os.ModePerm)
 }
+
+func Join(elem ...string) string {
+	strings := []string{HomeDeploy}
+	strings = append(strings, elem...)
+	return path.Join(strings...)
+}

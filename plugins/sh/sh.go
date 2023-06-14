@@ -1,71 +1,62 @@
 package sh
 
 import (
+	"errors"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"lenkins"
-	errors "lenkins/err"
 	"lenkins/plugins"
 	"os/exec"
-	"strings"
 )
 
 const pluginName = "sh"
 
 type Plugin struct {
+	plugins.PluginInfo
+	cmds []string
 }
 
-func New(info plugins.PluginInfo) error {
-	return nil
-}
-
-func (p Plugin) validate() error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (p Plugin) replace() error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (p Plugin) Execute() error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func Execute(job lenkins.Job, stepIndex int) error {
-	cmds := []string{}
-	step, parameter, ok := lenkins.GetConf(job, stepIndex, pluginName)
-	if !ok {
-		return errors.NoPluginUsed
-	}
-
-	err := mapstructure.Decode(parameter, cmds)
+func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
+	var plugin = new(Plugin)
+	plugin.PluginInfo = *info
+	err := plugin.Unmarshal(plugin.cmds)
 	if err != nil {
-		return fmt.Errorf("failed to configure object mapping. err: %v", err)
+		return nil, fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
-	for _, cmd := range cmds {
-		err := Command(step, cmd)
-		if err != nil {
-			return fmt.Errorf("sh execute command. err: %v", err)
+	return plugin, nil
+}
+
+func (p *Plugin) Validate() error {
+	if len(p.cmds) == 0 {
+		return errors.New("the commands cannot be empty")
+	}
+	for _, cmd := range p.cmds {
+		if len(cmd) == 0 {
+			return errors.New("the command cannot be empty")
 		}
 	}
-	if err != nil {
-		return fmt.Errorf("git clone failed. err: %v", err)
+	return nil
+}
+
+func (p *Plugin) Replace() error {
+	for key, val := range p.Parameters {
+		for i := range p.cmds {
+			p.cmds[i] = plugins.Replace(p.cmds[i], key, val)
+		}
+	}
+	for i := range p.cmds {
+		p.cmds[i] = "-c " + p.cmds[i]
 	}
 	return nil
 }
 
-// 这里为了简化，我省去了stderr和其他信息
-func Command(_ lenkins.Step, cmd string) error {
-	fmt.Println("execute command. ", cmd)
-	cmd = "-c " + cmd
-	cmds := strings.Split(" ", cmd)
-	c := exec.Command("sh", cmds...)
-	// 此处是windows版本
-	// c := exec.Command("cmd", "/C", cmd)
-	output, err := c.CombinedOutput()
-	fmt.Println(string(output))
-	return err
+func (p *Plugin) Execute() error {
+	for i := range p.cmds {
+		fmt.Println("execute command. ", p.cmds[i])
+		c := exec.Command("sh", p.cmds[i])
+		// 此处是windows版本
+		// c := exec.Command("cmd", "/C", cmd)
+		output, err := c.CombinedOutput()
+		fmt.Println(string(output))
+		return err
+	}
+	return nil
 }

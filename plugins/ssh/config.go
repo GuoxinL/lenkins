@@ -16,7 +16,7 @@ import (
 type Server struct {
 	Host               string `mapstructure:"host"`
 	User               string `mapstructure:"user"`
-	Port               int    `mapstructure:"port"`
+	Port               uint32 `mapstructure:"port"`
 	Password           string `mapstructure:"password"`
 	PrivateKey         string `mapstructure:"privateKey"`
 	PrivateKeyPathAuth string `mapstructure:"privateKeyPathAuth"`
