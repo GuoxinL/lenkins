@@ -7,11 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"lenkins"
+	"lenkins/home"
 	_ "lenkins/home"
 	"lenkins/log"
 	"lenkins/plugins"
-	"lenkins/plugins/init"
-	_ "lenkins/plugins/init"
+	"lenkins/plugins/plninit"
+	"os"
 )
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 		fmt.Println(string(marshal))
 		fmt.Println("构建名称：", job.Name)
 		fmt.Println("构建参数：", job.Parameters)
+		clearJobCache(job.Name)
 		for _, step := range job.Steps {
 			fmt.Println("步骤名称：", step.Name)
 			for pluginName, pluginParameter := range step.Plugin {
@@ -42,18 +44,41 @@ func main() {
 	var pluginInstance []plugins.Plugin
 	// 初始化插件
 	for _, info := range pluginInfos {
-		newPlugin, ok := init.Plugins[info.PluginName]
+		newPlugin, ok := plninit.Plugins[info.PluginName]
 		if !ok {
 			log.Errorf("plugin %v not support", info.PluginName)
 			return
 		}
 		plugin, err := newPlugin(info)
 		if err != nil {
+			log.Errorf("new plugin failed.", err)
 			return
 		}
 		pluginInstance = append(pluginInstance, plugin)
 	}
+	for i := range pluginInstance {
+		err = pluginInstance[i].Replace()
+		if err != nil {
+			log.Errorf("replace failed. error: %v", err)
+			return
+		}
+		err = pluginInstance[i].Validate()
+		if err != nil {
+			log.Errorf("validate failed. error: %v", err)
+			return
+		}
+		err = pluginInstance[i].Execute()
+		if err != nil {
+			log.Errorf("execute failed. error: %v", err)
+			return
+		}
+	}
+}
 
+func clearJobCache(name string) {
+	cachePath := home.Join(name)
+	err := os.RemoveAll(cachePath)
+	log.Infof("remove %v cache success. path: %v, error: %v", name, cachePath, err)
 }
 
 func prettyJson(plugin interface{}) {

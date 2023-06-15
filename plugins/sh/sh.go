@@ -3,8 +3,11 @@ package sh
 import (
 	"errors"
 	"fmt"
+	"lenkins/log"
 	"lenkins/plugins"
+	"lenkins/plugins/git"
 	"os/exec"
+	"strings"
 )
 
 const pluginName = "sh"
@@ -17,7 +20,7 @@ type Plugin struct {
 func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 	var plugin = new(Plugin)
 	plugin.PluginInfo = *info
-	err := plugin.Unmarshal(plugin.cmds)
+	err := plugin.Unmarshal(&plugin.cmds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
@@ -42,21 +45,28 @@ func (p *Plugin) Replace() error {
 			p.cmds[i] = plugins.Replace(p.cmds[i], key, val)
 		}
 	}
-	for i := range p.cmds {
-		p.cmds[i] = "-c " + p.cmds[i]
-	}
+	//for i := range p.cmds {
+	//	p.cmds[i] = "-c " + p.cmds[i]
+	//}
 	return nil
 }
 
 func (p *Plugin) Execute() error {
 	for i := range p.cmds {
-		fmt.Println("execute command. ", p.cmds[i])
-		c := exec.Command("sh", p.cmds[i])
+		log.Infof("execute command: %v", p.cmds[i])
+		cmdList := strings.Split(p.cmds[i], " ")
+		for j := range cmdList {
+			cmdList[j] = git.ReplaceScheme(cmdList[j], p.JobName)
+		}
+		cmd := strings.Join(cmdList, " ")
+		c := exec.Command("/bin/bash", "-c", cmd)
 		// 此处是windows版本
 		// c := exec.Command("cmd", "/C", cmd)
 		output, err := c.CombinedOutput()
 		fmt.Println(string(output))
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

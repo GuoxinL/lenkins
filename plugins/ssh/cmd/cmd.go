@@ -6,12 +6,9 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"lenkins"
 	"lenkins/plugins"
 	"lenkins/plugins/ssh"
 	"log"
-	"os/exec"
 )
 
 const pluginName = "cmd"
@@ -21,10 +18,15 @@ type Plugin struct {
 	cmd Cmd
 }
 
+type Cmd struct {
+	Servers []ssh.Server `mapstructure:"servers"`
+	Cmds    []string     `mapstructure:"cmd"`
+}
+
 func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 	var plugin = new(Plugin)
 	plugin.PluginInfo = *info
-	err := plugin.Unmarshal(plugin.cmd)
+	err := plugin.Unmarshal(&plugin.cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
@@ -32,17 +34,18 @@ func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 }
 
 func (p *Plugin) Validate() error {
-	if len(p.cmd.Cmd) == 0 {
+	if len(p.cmd.Cmds) == 0 {
 		return errors.New("the commands cannot be empty")
 	}
-	for _, cmd := range p.cmd.Cmd {
+	for _, cmd := range p.cmd.Cmds {
 		if len(cmd) == 0 {
 			return errors.New("the command cannot be empty")
 		}
 	}
 	for i := range p.cmd.Servers {
-		if len(p.cmd.Servers[i].User) == 0 {
-			return errors.New("the git repo parameter cannot be empty")
+		err := p.cmd.Servers[i].Validate()
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -50,48 +53,24 @@ func (p *Plugin) Validate() error {
 
 func (p *Plugin) Replace() error {
 	for key, val := range p.Parameters {
-		for i := range p.cmds {
-			p.cmds[i] = plugins.Replace(p.cmds[i], key, val)
+		for i := range p.cmd.Cmds {
+			p.cmd.Cmds[i] = plugins.Replace(p.cmd.Cmds[i], key, val)
+		}
+		for i := range p.cmd.Servers {
+			p.cmd.Servers[i].Replace(key, val)
 		}
 	}
-	for i := range p.cmds {
-		p.cmds[i] = "-c " + p.cmds[i]
+	for i := range p.cmd.Cmds {
+		p.cmd.Cmds[i] = "-c " + p.cmd.Cmds[i]
 	}
 	return nil
 }
 
 func (p *Plugin) Execute() error {
-	for i := range p.cmds {
-		fmt.Println("execute command. ", p.cmds[i])
-		c := exec.Command("sh", p.cmds[i])
-		// 此处是windows版本
-		// c := exec.Command("cmd", "/C", cmd)
-		output, err := c.CombinedOutput()
-		fmt.Println(string(output))
-		return err
+	for i := range p.cmd.Servers {
+		_ = RemoteCmds(p.cmd.Servers[i], p.cmd.Cmds)
 	}
 	return nil
-}
-
-func Execute(job lenkins.Job, stepIndex int) error {
-	step, parameter, ok := lenkins.GetConf(job, stepIndex, pluginName)
-	g := &Cmd{step: step}
-	err := mapstructure.Decode(parameter, g)
-	if err != nil {
-		return fmt.Errorf("failed to configure object mapping. err: %v", err)
-	}
-	for _, server := range g.Servers {
-		err := RemoteCmds(server, g.Cmd)
-		if err != nil {
-			return err
-		}
-	}
-	return err
-}
-
-type Cmd struct {
-	Servers []ssh.Server `mapstructure:"servers"`
-	Cmd     []string     `mapstructure:"cmd"`
 }
 
 func RemoteCmds(server ssh.Server, cmds []string) error {

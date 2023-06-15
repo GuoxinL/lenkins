@@ -4,11 +4,13 @@ Created by guoxin in 2023/6/2 17:37
 package ssh
 
 import (
+	"errors"
 	"fmt"
 	"github.com/eleztian/go-scp"
 	"github.com/mitchellh/go-homedir"
 	gossh "golang.org/x/crypto/ssh"
 	"io/ioutil"
+	"lenkins/plugins"
 	"log"
 	"time"
 )
@@ -16,12 +18,43 @@ import (
 type Server struct {
 	Host               string `mapstructure:"host"`
 	User               string `mapstructure:"user"`
-	Port               uint32 `mapstructure:"port"`
+	Port               string `mapstructure:"port"`
 	Password           string `mapstructure:"password"`
 	PrivateKey         string `mapstructure:"privateKey"`
 	PrivateKeyPathAuth string `mapstructure:"privateKeyPathAuth"`
 }
 
+func (s Server) Validate() error {
+	if len(s.User) == 0 {
+		return errors.New("the cmd server user parameter cannot be empty")
+	}
+	if len(s.Host) == 0 {
+		return errors.New("the cmd server host parameter cannot be empty")
+	}
+	var ok bool
+	if len(s.Password) != 0 {
+		ok = true
+	}
+	if len(s.PrivateKey) != 0 {
+		ok = true
+	}
+	if len(s.PrivateKeyPathAuth) != 0 {
+		ok = true
+	}
+	if !ok {
+		return errors.New("the cmd server Password or PrivateKey key or PrivateKeyPathAuth only one is not empty")
+	}
+	return nil
+}
+
+func (s *Server) Replace(key, value string) {
+	s.Port = plugins.Replace(s.Port, key, value)
+	s.User = plugins.Replace(s.User, key, value)
+	s.Host = plugins.Replace(s.Host, key, value)
+	s.Password = plugins.Replace(s.Password, key, value)
+	s.PrivateKey = plugins.Replace(s.PrivateKey, key, value)
+	s.PrivateKeyPathAuth = plugins.Replace(s.PrivateKeyPathAuth, key, value)
+}
 func (s *Server) GetConfig() *gossh.ClientConfig {
 	config := &gossh.ClientConfig{
 		Timeout:         time.Second, //ssh 连接time out 时间一秒钟, 如果ssh验证错误 会在一秒内返回

@@ -1,13 +1,14 @@
 # 变量引用减少重复代码
 server: &server-ref
-  host: 127.0.0.1
-  user: root # default root
-  port: 22 # default 22
+  host: localhost
+  user: guoxin # default root
+  port: "22" # default 22
   password: liugx
 #  privateKey: xxxxx
 #  privateKeyPathAuth: /path/to/file
 
 version: v1.0.0
+
 jobs:
   - name: lenkins-test
     parameters:
@@ -20,14 +21,16 @@ jobs:
           branch: master
       - name: Compile
         sh:
-          - "cd lenkins/main;go build . -o ../bin"
+          - "echo $PATH"
+          - "mkdir -p git://bin"
+          - "cd git://main/; go build -o git://bin/lenkins ."
       - name: Send package to Server
         scp:
           type: upload # upload or download
           servers:
             - <<: *server-ref
           remote: "/home/guoxin/Desktop"
-          local: "/home/guoxin/Desktop"
+          local: "git://bin/lenkins"
       - name: Deploy
         cmd:
           servers:

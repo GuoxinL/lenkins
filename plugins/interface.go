@@ -26,7 +26,7 @@ type PluginInfo struct {
 }
 
 func (i *PluginInfo) Unmarshal(output interface{}) error {
-	return mapstructure.Decode(i.Parameters, output)
+	return mapstructure.Decode(i.PluginParameter, output)
 }
 
 func Build(jobName, stepName string, parameters map[string]string,

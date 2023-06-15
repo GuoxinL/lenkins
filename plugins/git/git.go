@@ -12,11 +12,13 @@ import (
 	"lenkins/home"
 	"lenkins/plugins"
 	"os"
+	"strings"
 )
 
 const (
 	pluginName = "git"
-	dir        = "git"
+	Dir        = pluginName
+	Scheme     = pluginName + "://"
 )
 
 type Plugin struct {
@@ -55,7 +57,7 @@ func (p *Plugin) Replace() error {
 }
 
 func (p *Plugin) Execute() error {
-	err := p.git.Clone(home.Join(p.JobName, dir))
+	err := p.git.Clone(home.Join(p.JobName, Dir))
 	if err != nil {
 		return err
 	}
@@ -73,4 +75,13 @@ func (g *Git) Clone(path string) error {
 		Progress: os.Stdout,
 	})
 	return err
+}
+
+func ReplaceScheme(localPath, jobName string) string {
+	if strings.Contains(localPath, Scheme) {
+		localPath = strings.Replace(localPath, Scheme, "", -1)
+		localPath = home.Join(jobName, Dir, localPath)
+	}
+	return localPath
+
 }
