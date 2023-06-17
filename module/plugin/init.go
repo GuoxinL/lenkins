@@ -1,4 +1,4 @@
-package plninit
+package plugin
 
 import (
 	"lenkins/plugins"

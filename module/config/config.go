@@ -1,7 +1,7 @@
 /*
 Created by guoxin in 2023/6/2 14:15
 */
-package lenkins
+package config
 
 import (
 	"fmt"

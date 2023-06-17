@@ -10,8 +10,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"go.uber.org/zap"
 	gossh "golang.org/x/crypto/ssh"
-	"io/ioutil"
 	"lenkins/plugins"
+	"os"
 	"time"
 )
 
@@ -55,6 +55,7 @@ func (s *Server) Replace(key, value string) {
 	s.PrivateKey = plugins.Replace(s.PrivateKey, key, value)
 	s.PrivateKeyPathAuth = plugins.Replace(s.PrivateKeyPathAuth, key, value)
 }
+
 func (s *Server) GetConfig() *gossh.ClientConfig {
 	config := &gossh.ClientConfig{
 		Timeout:         time.Second, //ssh 连接time out 时间一秒钟, 如果ssh验证错误 会在一秒内返回
@@ -88,7 +89,7 @@ func PublicKeyPathAuthFunc(publicKeyPath string) gossh.AuthMethod {
 	if err != nil {
 		zap.S().Fatal("find key's home dir failed", err)
 	}
-	key, err := ioutil.ReadFile(keyPath)
+	key, err := os.ReadFile(keyPath)
 	if err != nil {
 		zap.S().Fatal("ssh key file read failed", err)
 	}

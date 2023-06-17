@@ -6,19 +6,19 @@ package main
 import (
 	"encoding/json"
 	"go.uber.org/zap"
-	"lenkins"
+	"lenkins/module/config"
 	"lenkins/module/home"
 	_ "lenkins/module/home"
 	"lenkins/module/logger"
+	"lenkins/module/plugin"
 	"lenkins/plugins"
-	"lenkins/plugins/plninit"
 	"os"
 	"path"
 )
 
 func main() {
 	logger.InitLog(path.Join(home.HomeLogs, "lenkins.log"), zap.DebugLevel)
-	config, _, err := lenkins.LoadConfig("../config/deploy-test.yaml")
+	conf, _, err := config.LoadConfig("../conf/deploy-test.yaml")
 	if err != nil {
 		panic(err)
 		return
@@ -26,7 +26,7 @@ func main() {
 	var pluginInfos plugins.PluginInfos
 
 	// 构建PluginInfo
-	for _, job := range config.Jobs {
+	for _, job := range conf.Jobs {
 		marshal, err := json.Marshal(job)
 		if err != nil {
 			return
@@ -45,17 +45,17 @@ func main() {
 	}
 	var pluginInstance []plugins.Plugin
 	for _, info := range pluginInfos {
-		newPlugin, ok := plninit.Plugins[info.PluginName]
+		newPlugin, ok := plugin.Plugins[info.PluginName]
 		if !ok {
 			zap.S().Errorf("[%v] new plugin failed. plugin not support", info.PluginName)
 			return
 		}
-		plugin, err := newPlugin(info)
+		pluginIns, err := newPlugin(info)
 		if err != nil {
 			zap.S().Errorf("[%s] new plugin failed. error: %v", info.PluginName, err)
 			return
 		}
-		pluginInstance = append(pluginInstance, plugin)
+		pluginInstance = append(pluginInstance, pluginIns)
 		zap.S().Infof("[%v] new plugin success.", info.PluginName)
 	}
 	for i := range pluginInstance {
@@ -88,16 +88,4 @@ func clearJobCache(name string) {
 	cachePath := home.Join(name)
 	err := os.RemoveAll(cachePath)
 	zap.S().Infof("remove %v cache success. path: %v, error: %v", name, cachePath, err)
-}
-
-func prettyJson(plugin interface{}) {
-	res, _ := json.Marshal(plugin)
-	zap.S().Infof(string(res))
-	//var out bytes.Buffer
-	//_ = json.Indent(&out, res, "", "\t")
-	//_, err := out.WriteTo(os.Stdout)
-	//if err != nil {
-	//	return
-	//}
-	//fmt.Printf("\n")
 }
