@@ -6,9 +6,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
+
+	"github.com/GuoxinL/lenkins/plugins"
+	"github.com/GuoxinL/lenkins/plugins/ssh"
 	"go.uber.org/zap"
-	"lenkins/plugins"
-	"lenkins/plugins/ssh"
 )
 
 const pluginName = "cmd"

@@ -3,11 +3,12 @@ package sh
 import (
 	"errors"
 	"fmt"
-	"go.uber.org/zap"
-	"lenkins/plugins"
-	"lenkins/plugins/git"
 	"os/exec"
 	"strings"
+
+	"github.com/GuoxinL/lenkins/plugins"
+	"github.com/GuoxinL/lenkins/plugins/git"
+	"go.uber.org/zap"
 )
 
 const pluginName = "sh"

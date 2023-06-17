@@ -4,10 +4,11 @@ Created by guoxin in 2023/6/2 15:00
 package home
 
 import (
-	"github.com/mitchellh/go-homedir"
-	"go.uber.org/zap"
 	"os"
 	"path"
+
+	"github.com/mitchellh/go-homedir"
+	"go.uber.org/zap"
 )
 
 const (
@@ -15,9 +16,10 @@ const (
 )
 
 var (
-	Home       = ""
-	HomeDeploy = ""
-	HomeLogs   = ""
+	Home             = ""
+	HomeDeploy       = ""
+	HomeLogs         = ""
+	HomeRemoteConfig = ""
 )
 
 func init() {
@@ -36,6 +38,11 @@ func init() {
 
 	HomeLogs = path.Join(Home, "logs")
 	err = Mkdir(HomeLogs)
+	if err != nil {
+		panic(err)
+	}
+	HomeRemoteConfig = path.Join(Home, "remote")
+	err = Mkdir(HomeRemoteConfig)
 	if err != nil {
 		panic(err)
 	}

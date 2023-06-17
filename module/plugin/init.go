@@ -1,11 +1,11 @@
 package plugin
 
 import (
-	"lenkins/plugins"
-	"lenkins/plugins/git"
-	"lenkins/plugins/sh"
-	"lenkins/plugins/ssh/cmd"
-	"lenkins/plugins/ssh/scp"
+	"github.com/GuoxinL/lenkins/plugins"
+	"github.com/GuoxinL/lenkins/plugins/git"
+	"github.com/GuoxinL/lenkins/plugins/sh"
+	"github.com/GuoxinL/lenkins/plugins/ssh/cmd"
+	"github.com/GuoxinL/lenkins/plugins/ssh/scp"
 )
 
 var (

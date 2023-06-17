@@ -6,13 +6,14 @@ package ssh
 import (
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/GuoxinL/lenkins/plugins"
 	"github.com/eleztian/go-scp"
 	"github.com/mitchellh/go-homedir"
 	"go.uber.org/zap"
 	gossh "golang.org/x/crypto/ssh"
-	"lenkins/plugins"
-	"os"
-	"time"
 )
 
 type Server struct {

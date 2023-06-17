@@ -5,17 +5,18 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"lenkins/module/config"
-	"lenkins/module/home"
-	_ "lenkins/module/home"
-	"lenkins/module/logger"
-	"lenkins/module/plugin"
-	"lenkins/plugins"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/GuoxinL/lenkins/module/config"
+	"github.com/GuoxinL/lenkins/module/home"
+	_ "github.com/GuoxinL/lenkins/module/home"
+	"github.com/GuoxinL/lenkins/module/logger"
+	"github.com/GuoxinL/lenkins/module/plugin"
+	"github.com/GuoxinL/lenkins/plugins"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 const (
@@ -39,11 +40,17 @@ var (
 
 func init() {
 	root.PersistentFlags().StringVarP(&deploy, DeployPath, "c", "", "Deployment configuration file (required)")
-	root.MarkPersistentFlagRequired(DeployPath)
+	err := root.MarkPersistentFlagRequired(DeployPath)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
-	root.Execute()
+	err := root.Execute()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func initMain(deploy string) {
@@ -53,9 +60,9 @@ func initMain(deploy string) {
 		panic(err)
 		return
 	}
-	var pluginInfos plugins.PluginInfos
 
 	// 构建PluginInfo
+	var pluginInfos plugins.PluginInfos
 	for _, job := range conf.Jobs {
 		marshal, err := json.Marshal(job)
 		if err != nil {
@@ -73,6 +80,7 @@ func initMain(deploy string) {
 			}
 		}
 	}
+
 	var pluginInstance []plugins.Plugin
 	for _, info := range pluginInfos {
 		newPlugin, ok := plugin.Plugins[info.PluginName]
@@ -88,6 +96,7 @@ func initMain(deploy string) {
 		pluginInstance = append(pluginInstance, pluginIns)
 		zap.S().Infof("[%v] new plugin success.", info.PluginName)
 	}
+
 	for i := range pluginInstance {
 		err = pluginInstance[i].Replace()
 		if err != nil {
@@ -96,6 +105,7 @@ func initMain(deploy string) {
 		}
 		zap.S().Infof("[%v] replace parameter success.", pluginInstance[i].Name())
 	}
+
 	for i := range pluginInstance {
 		err = pluginInstance[i].Validate()
 		if err != nil {
@@ -104,6 +114,7 @@ func initMain(deploy string) {
 		}
 		zap.S().Infof("[%v] validate parameter success.", pluginInstance[i].Name())
 	}
+
 	for i := range pluginInstance {
 		err = pluginInstance[i].Execute()
 		if err != nil {
@@ -117,6 +128,6 @@ func initMain(deploy string) {
 
 func clearJobCache(name string) {
 	cachePath := home.Join(name)
-	err := os.RemoveAll(cachePath)
-	zap.S().Infof("remove %v cache success. path: %v, error: %v", name, cachePath, err)
+	_ = os.RemoveAll(cachePath)
+	zap.S().Infof("remove %v cache success. path: %v", name, cachePath)
 }

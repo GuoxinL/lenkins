@@ -5,8 +5,17 @@ package config
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"path"
+	"strings"
+
+	"github.com/GuoxinL/lenkins/module/home"
+	"github.com/GuoxinL/lenkins/module/tools"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
-import "github.com/spf13/viper"
 
 type Config struct {
 	Version string `mapstructure:"version"`
@@ -44,17 +53,48 @@ func LoadConfig(path string) (*Config, *viper.Viper, error) {
 }
 
 func InitViper(confPath string) (*viper.Viper, error) {
-	cmViper := viper.New()
-	cmViper.SetConfigFile(confPath)
-	if err := cmViper.ReadInConfig(); err != nil {
+	v := viper.New()
+	v.SetConfigFile(confPath)
+	v.SetConfigType("yaml")
+	if strings.HasPrefix(confPath, "http://") || strings.HasPrefix(confPath, "https://") {
+		filename, err := save2local(confPath)
+		if err != nil {
+			return nil, err
+		}
+		v.SetConfigFile(filename)
+
+		zap.S().Infof("reading the remote configuration file succeeded.")
+		zap.S().Infof("save to local. filename: %s", filename)
+	}
+	if err := v.ReadInConfig(); err != nil {
 		return nil, err
 	}
-	cmViper.WatchConfig()
-	return cmViper, nil
+	v.WatchConfig()
+	return v, nil
 }
 
-func GetConf(job Job, stepIndex int, pluginName string) (step Step, parameter interface{}, ok bool) {
-	step = job.Steps[stepIndex]
-	parameter, ok = step.Plugin[pluginName]
-	return
+func save2local(configUrl string) (string, error) {
+	resp, err := http.Get(configUrl)
+	if err != nil {
+		return "", fmt.Errorf("read remote file failed. error: %s, url: %s", err, configUrl)
+	}
+	defer resp.Body.Close()
+
+	parsedUrl, err := url.Parse(configUrl)
+	if err != nil {
+		return "", fmt.Errorf("failed to read the file name in the URL. error: %s, url: %s", err, configUrl)
+	}
+	filename := path.Base(parsedUrl.Path)
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response reader failed. error: %s, url: %s", err, configUrl)
+	}
+
+	filename = path.Join(home.HomeRemoteConfig, filename)
+
+	if err = tools.WriteFile(filename, content); err != nil {
+		return "", fmt.Errorf("write file failed. error: %s, filename: %v, content: %s", err, filename, string(content))
+	}
+	return filename, nil
 }

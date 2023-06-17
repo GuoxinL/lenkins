@@ -6,10 +6,11 @@ package scp
 import (
 	"errors"
 	"fmt"
+
+	plugins "github.com/GuoxinL/lenkins/plugins"
+	"github.com/GuoxinL/lenkins/plugins/git"
+	"github.com/GuoxinL/lenkins/plugins/ssh"
 	"go.uber.org/zap"
-	"lenkins/plugins"
-	"lenkins/plugins/git"
-	"lenkins/plugins/ssh"
 )
 
 const pluginName = "scp"

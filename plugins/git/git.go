@@ -8,12 +8,13 @@ package git
 import (
 	"errors"
 	"fmt"
-	git "github.com/go-git/go-git/v5"
-	"lenkins/module/home"
-	"lenkins/module/logger"
-	"lenkins/plugins"
 	"path"
 	"strings"
+
+	"github.com/GuoxinL/lenkins/module/home"
+	"github.com/GuoxinL/lenkins/module/logger"
+	"github.com/GuoxinL/lenkins/plugins"
+	git "github.com/go-git/go-git/v5"
 )
 
 const (

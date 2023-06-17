@@ -1,12 +1,14 @@
 package logger
 
 import (
-	"github.com/natefinch/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"io"
 	"os"
 	"time"
+
+	"github.com/natefinch/lumberjack"
+	_ "github.com/spf13/viper/remote"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // InitLog 初始化日志 logger
