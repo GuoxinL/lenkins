@@ -38,3 +38,8 @@ echo '
 export PATH=$PATH:$GOPATH
 ' >> /path/to/profile
 ```
+
+## Hello world !!!
+```shell
+lenkins -c https://gitee.com/guoxinliu/lenkins/raw/master/demo/demo.yaml
+```
