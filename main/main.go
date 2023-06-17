@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"lenkins/module/config"
 	"lenkins/module/home"
@@ -14,11 +15,40 @@ import (
 	"lenkins/plugins"
 	"os"
 	"path"
+	"strings"
 )
 
+const (
+	DeployPath = "conf"
+
+	SystemPath = "lenkins.log"
+)
+
+var (
+	root = &cobra.Command{
+		Use:   "lenkins",
+		Short: "Lenkins CLI",
+		Long:  strings.TrimSpace(`Lenkins is a lightweight deployment tool. Lenkins can automatically execute scripts, deploy applications, and remotely execute commands through a configuration file; it supports git plug-ins, sh plug-ins (local execution commands), cmd plug-ins (remote execution commands), scp plugins (upload or download) etc.`),
+		Run: func(cmd *cobra.Command, args []string) {
+			initMain(deploy)
+		},
+	}
+
+	deploy string
+)
+
+func init() {
+	root.PersistentFlags().StringVarP(&deploy, DeployPath, "c", "", "Deployment configuration file (required)")
+	root.MarkPersistentFlagRequired(DeployPath)
+}
+
 func main() {
-	logger.InitLog(path.Join(home.HomeLogs, "lenkins.log"), zap.DebugLevel)
-	conf, _, err := config.LoadConfig("../conf/deploy-test.yaml")
+	root.Execute()
+}
+
+func initMain(deploy string) {
+	logger.InitLog(path.Join(home.HomeLogs, SystemPath), zap.DebugLevel)
+	conf, _, err := config.LoadConfig(deploy)
 	if err != nil {
 		panic(err)
 		return
@@ -82,6 +112,7 @@ func main() {
 		}
 		zap.S().Infof("[%v] execute success.", pluginInstance[i].Name())
 	}
+
 }
 
 func clearJobCache(name string) {

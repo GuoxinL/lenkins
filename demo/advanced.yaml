@@ -1,9 +1,9 @@
 # 变量引用减少重复代码
 server: &server-ref
   host: localhost
-  user: guoxin # default root
+  user: you username # default root
   port: "22" # default 22
-  password: liugx
+  password: you password
 #  privateKey: xxxxx
 #  privateKeyPathAuth: /path/to/file
 
