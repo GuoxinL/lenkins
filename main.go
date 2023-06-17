@@ -29,7 +29,10 @@ var (
 	root = &cobra.Command{
 		Use:   "lenkins",
 		Short: "Lenkins CLI",
-		Long:  strings.TrimSpace(`Lenkins is a lightweight deployment tool. Lenkins can automatically execute scripts, deploy applications, and remotely execute commands through a configuration file; it supports git plug-ins, sh plug-ins (local execution commands), cmd plug-ins (remote execution commands), scp plugins (upload or download) etc.`),
+		Long: strings.TrimSpace(`Lenkins is a lightweight deployment tool. Lenkins can automatically execute scripts, deploy applicat
+ions, and remotely execute commands through a configuration file; it supports git plug-ins, sh plug-
+ins (local execution commands), cmd plug-ins (remote execution commands), scp plugins (upload or dow
+nload) etc.`),
 		Run: func(cmd *cobra.Command, args []string) {
 			initMain(deploy)
 		},
