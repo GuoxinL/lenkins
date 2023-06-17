@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"github.com/eleztian/go-scp"
 	"github.com/mitchellh/go-homedir"
+	"go.uber.org/zap"
 	gossh "golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"lenkins/plugins"
-	"log"
 	"time"
 )
 
@@ -86,16 +86,16 @@ func (s *Server) GetScpClient() (*scp.SCP, error) {
 func PublicKeyPathAuthFunc(publicKeyPath string) gossh.AuthMethod {
 	keyPath, err := homedir.Expand(publicKeyPath)
 	if err != nil {
-		log.Fatal("find key's home dir failed", err)
+		zap.S().Fatal("find key's home dir failed", err)
 	}
 	key, err := ioutil.ReadFile(keyPath)
 	if err != nil {
-		log.Fatal("ssh key file read failed", err)
+		zap.S().Fatal("ssh key file read failed", err)
 	}
 	// Create the Signer for this private key.
 	signer, err := gossh.ParsePrivateKey(key)
 	if err != nil {
-		log.Fatal("ssh key signer failed", err)
+		zap.S().Fatal("ssh key signer failed", err)
 	}
 	return gossh.PublicKeys(signer)
 }
@@ -103,7 +103,7 @@ func PublicKeyPathAuthFunc(publicKeyPath string) gossh.AuthMethod {
 func PublicKeyAuthFunc(privateKey string) gossh.AuthMethod {
 	signer, err := gossh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
-		log.Fatal("ssh key signer failed", err)
+		zap.S().Fatal("ssh key signer failed", err)
 	}
 	return gossh.PublicKeys(signer)
 }

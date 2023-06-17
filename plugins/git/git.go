@@ -9,9 +9,10 @@ import (
 	"errors"
 	"fmt"
 	git "github.com/go-git/go-git/v5"
-	"lenkins/home"
+	"lenkins/module/home"
+	"lenkins/module/logger"
 	"lenkins/plugins"
-	"os"
+	"path"
 	"strings"
 )
 
@@ -36,6 +37,10 @@ func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 	}
 	plugin.git = g
 	return plugin, nil
+}
+
+func (p *Plugin) Name() string {
+	return pluginName
 }
 
 func (p *Plugin) Validate() error {
@@ -69,10 +74,10 @@ type Git struct {
 	Branch string `mapstructure:"branch"`
 }
 
-func (g *Git) Clone(path string) error {
-	_, err := git.PlainClone(path, false, &git.CloneOptions{
+func (g *Git) Clone(filepath string) error {
+	_, err := git.PlainClone(filepath, false, &git.CloneOptions{
 		URL:      g.Repo,
-		Progress: os.Stdout,
+		Progress: logger.GetWriter(path.Join(home.HomeLogs, "lenkins.log")),
 	})
 	return err
 }

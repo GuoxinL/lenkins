@@ -4,8 +4,8 @@ Created by guoxin in 2023/6/2 15:00
 package home
 
 import (
-	"fmt"
 	"github.com/mitchellh/go-homedir"
+	"go.uber.org/zap"
 	"os"
 	"path"
 )
@@ -25,21 +25,21 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("home: ", Home)
+	zap.S().Infof("home: ", Home)
 
 	HomeDeploy = path.Join(Home, "deploy")
 	err = Mkdir(HomeDeploy)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("mkdir ", HomeDeploy)
+	zap.S().Infof("mkdir ", HomeDeploy)
 
 	HomeLogs = path.Join(Home, "logs")
 	err = Mkdir(HomeLogs)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("mkdir ", HomeLogs)
+	zap.S().Infof("mkdir ", HomeLogs)
 }
 
 func Mkdir(dir string) error {

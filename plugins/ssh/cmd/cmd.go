@@ -6,9 +6,9 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"lenkins/plugins"
 	"lenkins/plugins/ssh"
-	"log"
 )
 
 const pluginName = "cmd"
@@ -31,6 +31,10 @@ func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 		return nil, fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
 	return plugin, nil
+}
+
+func (p *Plugin) Name() string {
+	return pluginName
 }
 
 func (p *Plugin) Validate() error {
@@ -86,14 +90,14 @@ func RemoteCmds(server ssh.Server, cmds []string) error {
 	}
 	defer session.Close()
 	for _, cmd := range cmds {
-		log.Println("cmd:", cmd)
+		zap.S().Infof("[%s] cmd: %v", pluginName, cmd)
 		output, err := session.CombinedOutput(cmd)
-		fmt.Println(fmt.Sprintf("execute command. %v", cmd))
+		zap.S().Infof("[%s] execute command. %v", pluginName, cmd)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("execute command failed. output: %v", output))
+			zap.S().Infof("[%s] execute command failed. output: %v", pluginName, output)
 			return err
 		}
-		fmt.Println(fmt.Sprintf("execute command success. output: %v", output))
+		zap.S().Infof("[%s] execute command success. output: %v", pluginName, output)
 	}
 	return nil
 }

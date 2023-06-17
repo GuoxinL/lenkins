@@ -3,7 +3,7 @@ package sh
 import (
 	"errors"
 	"fmt"
-	"lenkins/log"
+	"go.uber.org/zap"
 	"lenkins/plugins"
 	"lenkins/plugins/git"
 	"os/exec"
@@ -25,6 +25,10 @@ func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 		return nil, fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
 	return plugin, nil
+}
+
+func (p *Plugin) Name() string {
+	return pluginName
 }
 
 func (p *Plugin) Validate() error {
@@ -53,7 +57,7 @@ func (p *Plugin) Replace() error {
 
 func (p *Plugin) Execute() error {
 	for i := range p.cmds {
-		log.Infof("execute command: %v", p.cmds[i])
+		zap.S().Infof("[%v] execute command: %v", pluginName, p.cmds[i])
 		cmdList := strings.Split(p.cmds[i], " ")
 		for j := range cmdList {
 			cmdList[j] = git.ReplaceScheme(cmdList[j], p.JobName)
@@ -63,7 +67,7 @@ func (p *Plugin) Execute() error {
 		// 此处是windows版本
 		// c := exec.Command("cmd", "/C", cmd)
 		output, err := c.CombinedOutput()
-		fmt.Println(string(output))
+		zap.S().Infof("[%v] command output: %s", pluginName, string(output))
 		if err != nil {
 			return err
 		}

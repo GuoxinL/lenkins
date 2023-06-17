@@ -13,6 +13,7 @@ type Plugin interface {
 	Validate() error
 	Replace() error
 	Execute() error
+	Name() string
 }
 
 type NewPluginFunc func(*PluginInfo) (Plugin, error)

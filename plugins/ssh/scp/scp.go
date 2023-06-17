@@ -6,6 +6,7 @@ package scp
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"lenkins/plugins"
 	"lenkins/plugins/git"
 	"lenkins/plugins/ssh"
@@ -27,6 +28,10 @@ func New(info *plugins.PluginInfo) (plugins.Plugin, error) {
 		return nil, fmt.Errorf("failed to configure object mapping. err: %v", err)
 	}
 	return plugin, nil
+}
+
+func (p *Plugin) Name() string {
+	return pluginName
 }
 
 func (p *Plugin) Validate() error {
@@ -83,7 +88,7 @@ func (s *Scp) upload(server ssh.Server, local string, remote string) error {
 	if err != nil {
 		return fmt.Errorf("%v failed. err: %v", "uoload", err)
 	}
-	fmt.Printf("File %s upload successfully!\n", "remotefile.txt")
+	zap.S().Infof("[%v] File %s upload successfully!", pluginName, local)
 	return nil
 }
 
@@ -97,6 +102,6 @@ func ScpDownload(server ssh.Server) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("File %s downloaded successfully!\n", "remotefile.txt")
+	zap.S().Infof("File %s downloaded successfully!", "remotefile.txt")
 	return nil
 }
