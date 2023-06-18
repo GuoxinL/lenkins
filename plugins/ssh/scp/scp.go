@@ -7,13 +7,20 @@ import (
 	"errors"
 	"fmt"
 
-	plugins "github.com/GuoxinL/lenkins/plugins"
+	"github.com/GuoxinL/lenkins/plugins"
 	"github.com/GuoxinL/lenkins/plugins/git"
 	"github.com/GuoxinL/lenkins/plugins/ssh"
 	"go.uber.org/zap"
 )
 
 const pluginName = "scp"
+
+type ScpType string
+
+const (
+	TypeUpload   ScpType = "upload"
+	TypeDownload ScpType = "download"
+)
 
 type Plugin struct {
 	plugins.PluginInfo
@@ -65,7 +72,7 @@ func (p *Plugin) Replace() error {
 func (p *Plugin) Execute() error {
 	for _, server := range p.scp.Servers {
 		var localPath = git.ReplaceScheme(p.scp.Local, p.JobName)
-		err := p.scp.upload(server, localPath, p.scp.Remote)
+		err := p.scp.scp(server, localPath, p.scp.Remote)
 		if err != nil {
 			return err
 		}
@@ -77,32 +84,29 @@ type Scp struct {
 	Servers []ssh.Server `mapstructure:"servers"`
 	Remote  string       `mapstructure:"remote"`
 	Local   string       `mapstructure:"local"`
+	Type    ScpType      `mapstructure:"type"`
 }
 
-func (s *Scp) upload(server ssh.Server, local string, remote string) error {
+func (s *Scp) scp(server ssh.Server, local string, remote string) error {
 	client, err := server.GetScpClient()
 	if err != nil {
-		return fmt.Errorf("create ssh scp %v client failed. err: %v", "uoload", err)
+		return fmt.Errorf("create ssh scp %v client failed. err: %v", s.Type, err)
 	}
 	defer client.Close()
-	err = client.Upload(local, remote)
-	if err != nil {
-		return fmt.Errorf("%v failed. err: %v", "uoload", err)
+	switch s.Type {
+	case TypeUpload:
+		err = client.Upload(local, remote)
+		if err != nil {
+			return fmt.Errorf("%s failed. error: %v", s.Type, err)
+		}
+	case TypeDownload:
+		err = client.Download(local, remote)
+		if err != nil {
+			return fmt.Errorf("%s failed. error: %v", s.Type, err)
+		}
+	default:
+		return fmt.Errorf("scp type %v not support", s.Type)
 	}
-	zap.S().Infof("[%v] File %s upload successfully!", pluginName, local)
-	return nil
-}
-
-func ScpDownload(server ssh.Server) error {
-	client, err := server.GetScpClient()
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-	err = client.Download("/root/scp", "testdata")
-	if err != nil {
-		return err
-	}
-	zap.S().Infof("File %s downloaded successfully!", "remotefile.txt")
+	zap.S().Infof("[%s] File %s %s successfully!", pluginName, local, s.Type)
 	return nil
 }
