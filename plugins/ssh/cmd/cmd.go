@@ -6,10 +6,10 @@ package cmd
 import (
 	"errors"
 	"fmt"
-
 	"github.com/GuoxinL/lenkins/plugins"
 	"github.com/GuoxinL/lenkins/plugins/ssh"
 	"go.uber.org/zap"
+	"os"
 )
 
 const pluginName = "cmd"
@@ -65,9 +65,6 @@ func (p *Plugin) Replace() error {
 			p.cmd.Servers[i].Replace(key, val)
 		}
 	}
-	for i := range p.cmd.Cmds {
-		p.cmd.Cmds[i] = "-c " + p.cmd.Cmds[i]
-	}
 	return nil
 }
 
@@ -85,20 +82,23 @@ func RemoteCmds(server ssh.Server, cmds []string) error {
 	}
 	defer client.Close()
 
-	session, err := client.NewSession()
-	if err != nil {
-		return fmt.Errorf("create ssh session failed. err: %v", err)
-	}
-	defer session.Close()
 	for _, cmd := range cmds {
-		zap.S().Infof("[%s] cmd: %v", pluginName, cmd)
-		output, err := session.CombinedOutput(cmd)
-		zap.S().Infof("[%s] execute command. %v", pluginName, cmd)
+		session, err := client.NewSession()
 		if err != nil {
-			zap.S().Infof("[%s] execute command failed. output: %v", pluginName, output)
+			return fmt.Errorf("create ssh session failed. err: %v", err)
+		}
+		zap.S().Infof("[%s] execute command. cmd: %v", pluginName, cmd)
+		session.Stdout = os.Stdout
+		session.Stderr = os.Stderr
+
+		var output []byte
+		err = session.Run("bash -c " + cmd)
+		if err != nil {
+			zap.S().Errorf("[%s] execute command failed. cmd: %v, output: %v, error: %v", pluginName, cmd, string(output), err)
 			return err
 		}
-		zap.S().Infof("[%s] execute command success. output: %v", pluginName, output)
+		zap.S().Infof("[%s] execute command success. cmd: %v output: %v", pluginName, cmd, string(output))
+		session.Close()
 	}
 	return nil
 }

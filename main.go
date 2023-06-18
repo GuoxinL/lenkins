@@ -69,6 +69,7 @@ func initMain(deploy string) {
 	for _, job := range conf.Jobs {
 		marshal, err := json.Marshal(job)
 		if err != nil {
+			zap.S().Errorf("[%v] json marshal failed. error: %v", job.Name, err)
 			return
 		}
 		zap.S().Info(string(marshal))
@@ -103,7 +104,7 @@ func initMain(deploy string) {
 	for i := range pluginInstance {
 		err = pluginInstance[i].Replace()
 		if err != nil {
-			zap.S().Errorf("[%v] replace parameter failed. error: %v", err)
+			zap.S().Errorf("[%v] replace parameter failed. error: %v", pluginInstance[i].Name(), err)
 			return
 		}
 		zap.S().Infof("[%v] replace parameter success.", pluginInstance[i].Name())

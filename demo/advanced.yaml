@@ -23,7 +23,7 @@ jobs:
         sh:
           - "echo $PATH"
           - "mkdir -p git://bin"
-          - "cd git://main/; go build -o git://bin/lenkins ."
+          - "go build -o git://bin/lenkins ."
       - name: Send package to Server
         scp:
           type: upload # upload or download
@@ -36,4 +36,5 @@ jobs:
           servers:
             - <<: *server-ref
           cmd:
-            - "cd /home/guoxin/Desktop; cp lenkins lenkins-bin"
+            - "pwd; cp /home/guoxin/Desktop/lenkins /home/guoxin/Desktop/lenkins-bin"
+            - "/home/guoxin/Desktop/lenkins -h"

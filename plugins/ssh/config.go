@@ -62,7 +62,6 @@ func (s *Server) GetConfig() *gossh.ClientConfig {
 		Timeout:         time.Second, //ssh 连接time out 时间一秒钟, 如果ssh验证错误 会在一秒内返回
 		User:            s.User,
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //这个可以， 但是不够安全
-		//HostKeyCallback: hostKeyCallBackFunc(h.Host),
 	}
 	if len(s.Password) != 0 {
 		config.Auth = []gossh.AuthMethod{gossh.Password(s.Password)}
