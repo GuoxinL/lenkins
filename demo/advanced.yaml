@@ -23,7 +23,7 @@ jobs:
         sh:
           - "echo $PATH"
           - "mkdir -p git://bin"
-          - "go build -o git://bin/lenkins ."
+          - "go build -o git://bin/lenkins"
       - name: Send package to Server
         scp:
           type: upload # upload or download

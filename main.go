@@ -42,11 +42,7 @@ nload) etc.`),
 )
 
 func init() {
-	root.PersistentFlags().StringVarP(&deploy, DeployPath, "c", "", "Deployment configuration file (required)")
-	err := root.MarkPersistentFlagRequired(DeployPath)
-	if err != nil {
-		panic(err)
-	}
+	root.PersistentFlags().StringVarP(&deploy, DeployPath, "c", "", "Deployment configuration file.")
 }
 
 func main() {
@@ -58,6 +54,9 @@ func main() {
 
 func initMain(deploy string) {
 	logger.InitLog(path.Join(home.HomeLogs, SystemPath), zap.DebugLevel)
+	if len(deploy) == 0 {
+		return
+	}
 	conf, _, err := config.LoadConfig(deploy)
 	if err != nil {
 		panic(err)

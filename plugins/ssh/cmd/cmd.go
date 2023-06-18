@@ -4,12 +4,12 @@ Created by guoxin in 2023/6/2 11:47
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/GuoxinL/lenkins/plugins"
 	"github.com/GuoxinL/lenkins/plugins/ssh"
 	"go.uber.org/zap"
-	"os"
 )
 
 const pluginName = "cmd"
@@ -87,17 +87,21 @@ func RemoteCmds(server ssh.Server, cmds []string) error {
 		if err != nil {
 			return fmt.Errorf("create ssh session failed. err: %v", err)
 		}
-		zap.S().Infof("[%s] execute command. cmd: %v", pluginName, cmd)
-		session.Stdout = os.Stdout
-		session.Stderr = os.Stderr
+		zap.S().Infof("[%s] [%v] execute command.", pluginName, cmd)
+		var (
+			stdout bytes.Buffer
+			stderr bytes.Buffer
+		)
 
-		var output []byte
-		err = session.Run("bash -c " + cmd)
+		session.Stdout = &stdout
+		session.Stderr = &stderr
+
+		err = session.Start("bash -c " + cmd)
 		if err != nil {
-			zap.S().Errorf("[%s] execute command failed. cmd: %v, output: %v, error: %v", pluginName, cmd, string(output), err)
+			zap.S().Errorf("[%s] [%v] execute command failed. stdout: %v, stderr: %v, error: %v", pluginName, cmd, stdout.String(), stderr.String(), err)
 			return err
 		}
-		zap.S().Infof("[%s] execute command success. cmd: %v output: %v", pluginName, cmd, string(output))
+		zap.S().Infof("[%s] [%v] execute command success. stdout: %v, stderr: %v", pluginName, cmd, stdout.String(), stderr.String())
 		session.Close()
 	}
 	return nil
