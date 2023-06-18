@@ -82,6 +82,7 @@ func (s *Server) GetConfig() (*gossh.ClientConfig, error) {
 	}
 	return config, nil
 }
+
 func (s *Server) GetCmdClient() (*gossh.Client, error) {
 	config, err := s.GetConfig()
 	if err != nil {

@@ -7,7 +7,7 @@ Lenkins是一个轻量级部署工具。它可以很方便的通过一个yaml配
 1. 使用go命令安装lenkins
 
 ```shell
-~ go install gitee.com/guoxinliu/lenkins@latest
+~ go install github.com/GuoxinL/lenkins@latest
 go: downloading github.com/GuoxinL/lenkins v0.0.0-20230617174852-c395440cf0a0
 ```
 
