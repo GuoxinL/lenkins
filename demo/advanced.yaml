@@ -12,8 +12,8 @@ version: v1.0.0
 jobs:
   - name: lenkins-test
     parameters:
-      service: satc-access-inner
-      environment: gd_inner
+      service_name: xxx_service
+      environment: dev
     steps:
       - name: Clone
         git:
