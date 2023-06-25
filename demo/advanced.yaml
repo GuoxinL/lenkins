@@ -3,10 +3,16 @@ server: &server-ref
   host: localhost
   user: you username # default root
   port: "22" # default 22
-  type: password # password: 密码登陆, privateKey: 私钥字符串, privateKeyPath: 私钥路径
+  type: password # password: 密码登陆, privateKey: 私钥明文, privateKeyPath: 私钥路径
+  # 密码登陆
   password: you password
- privateKey: "xxxxx"
- privateKeyPath: /path/to/file
+  # 读取私钥明文；以明文的方式填写到配置文件中
+  privateKey: "xxxxx"
+  # 读取私钥路径；本机绝对路径或者用户目录下的SSH私钥
+  # 1. 绝对路径 /path/to/id_rsa
+  # 2. 读取用户目录下，例如： ~/path/to/id_rsa
+  # 默认为 ~/.ssh/id_rsa
+  privateKeyPath: /path/to/id_rsa
 
 version: v1.0.0
 
