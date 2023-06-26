@@ -1,18 +1,16 @@
 # 变量引用减少重复代码
 server: &server-ref
   host: localhost
-  user: you username # default root
   port: "22" # default 22
-  type: password # password: 密码登陆, privateKey: 私钥明文, privateKeyPath: 私钥路径
-  # 密码登陆
-  password: you password
-  # 读取私钥明文；以明文的方式填写到配置文件中
-  privateKey: "xxxxx"
-  # 读取私钥路径；本机绝对路径或者用户目录下的SSH私钥
-  # 1. 绝对路径 /path/to/id_rsa
-  # 2. 读取用户目录下，例如： ~/path/to/id_rsa
-  # 默认为 ~/.ssh/id_rsa
-  privateKeyPath: /path/to/id_rsa
+  # password: Authentication via username and password.
+  # privateKey: Authenticated by private key. (The privateKey field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+  # privateKeyPath: Authentication via private key path. (The privateKeyPath field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+  # default is privateKeyPath, Read the private key in the current user directory, ~/.ssh/id_rsa.
+  authType: privateKeyPath
+  username:
+  password:
+  privateKey:
+  privateKeyPath:
 
 version: v1.0.0
 
@@ -29,7 +27,7 @@ jobs:
           # basic: Authentication via username and password.
           # privateKey: Authenticated by private key. (The privateKey field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
           # privateKeyPath: Authentication via private key path. (The privateKeyPath field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
-          # default is privateKeyPath, Read the private key in the current user directory.
+          # default is privateKeyPath, Read the private key in the current user directory, ~/.ssh/id_rsa.
           authType: privateKeyPath
           username:
           password:
