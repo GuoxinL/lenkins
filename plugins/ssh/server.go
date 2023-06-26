@@ -91,7 +91,7 @@ func (s *Server) GetConfig() (*gossh.ClientConfig, error) {
 		}
 		config.Auth = []gossh.AuthMethod{authFunc}
 	default:
-		return nil, fmt.Errorf("auth type %v not support", s.Type)
+		return nil, fmt.Errorf("ssh auth type %v not support", s.Type)
 	}
 	return config, nil
 }
