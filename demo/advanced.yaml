@@ -26,6 +26,15 @@ jobs:
         git:
           repo: git@gitee.com:guoxinliu/lenkins.git
           branch: master
+          # basic: Authentication via username and password.
+          # privateKey: Authenticated by private key. (The privateKey field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+          # privateKeyPath: Authentication via private key path. (The privateKeyPath field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+          # default is privateKeyPath, Read the private key in the current user directory.
+          authType: privateKeyPath
+          username:
+          password:
+          privateKey:
+          privateKeyPath:
       - name: Compile
         sh:
           - "echo $PATH"
