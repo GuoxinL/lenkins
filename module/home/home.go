@@ -13,6 +13,7 @@ import (
 
 const (
 	HomeDir = "~/.lenkins"
+	SSHDir  = "~/.ssh"
 )
 
 var (
@@ -23,7 +24,8 @@ var (
 )
 
 func init() {
-	Home, err := homedir.Expand(HomeDir)
+	var err error
+	Home, err = homedir.Expand(HomeDir)
 	if err != nil {
 		panic(err)
 	}
@@ -53,8 +55,17 @@ func Mkdir(dir string) error {
 	return os.MkdirAll(dir, os.ModePerm)
 }
 
-func Join(elem ...string) string {
+func DeployJoin(elem ...string) string {
 	strings := []string{HomeDeploy}
 	strings = append(strings, elem...)
 	return path.Join(strings...)
+}
+
+func CurrentSshIdRSA() (string, error) {
+	ssh, err := homedir.Expand(SSHDir)
+	if err != nil {
+		return "", err
+	}
+	sshIdRsa := path.Join(ssh, "id_rsa")
+	return sshIdRsa, nil
 }

@@ -44,5 +44,5 @@ export PATH=$PATH:$GOPATH
 ## Hello world !!!
 
 ```shell
-lenkins -c https://raw.githubusercontent.com/GuoxinL/lenkins/master/demo/demo.yaml
+lenkins -c https://raw.githubusercontent.com/GuoxinL/lenkins/master/example/primary.yaml
 ```

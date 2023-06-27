@@ -33,13 +33,13 @@ type Step struct {
 	Plugin map[string]interface{} `mapstructure:",remain"`
 }
 
-func LoadConfig(path string) (*Config, *viper.Viper, error) {
+func LoadYamlConfig(path string) (*Config, *viper.Viper, error) {
 	var (
 		err       error
 		confViper *viper.Viper
 	)
 
-	if confViper, err = InitViper(path); err != nil {
+	if confViper, err = initYamlViper(path); err != nil {
 		return nil, nil, fmt.Errorf("load sdk config failed, %s", err)
 	}
 
@@ -52,9 +52,8 @@ func LoadConfig(path string) (*Config, *viper.Viper, error) {
 
 }
 
-func InitViper(confPath string) (*viper.Viper, error) {
+func initYamlViper(confPath string) (*viper.Viper, error) {
 	v := viper.New()
-	v.SetConfigFile(confPath)
 	v.SetConfigType("yaml")
 	if strings.HasPrefix(confPath, "http://") || strings.HasPrefix(confPath, "https://") {
 		filename, err := save2local(confPath)
@@ -65,6 +64,8 @@ func InitViper(confPath string) (*viper.Viper, error) {
 
 		zap.S().Infof("reading the remote configuration file succeeded.")
 		zap.S().Infof("save to local. filename: %s", filename)
+	} else {
+		v.SetConfigFile(confPath)
 	}
 	if err := v.ReadInConfig(); err != nil {
 		return nil, err
@@ -84,12 +85,17 @@ func save2local(configUrl string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read the file name in the URL. error: %s, url: %s", err, configUrl)
 	}
-	filename := path.Base(parsedUrl.Path)
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("read response reader failed. error: %s, url: %s", err, configUrl)
 	}
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("get remote yaml config failed. error: %s, url: %s, res:%s", err, configUrl, content)
+	}
+
+	filename := path.Base(parsedUrl.Path)
 
 	filename = path.Join(home.HomeRemoteConfig, filename)
 

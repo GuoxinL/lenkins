@@ -1,0 +1,54 @@
+# 变量引用减少重复代码
+server: &server-ref
+  host: localhost
+  port: "22" # default 22
+  # password: Authentication via username and password.
+  # privateKey: Authenticated by private key. (The privateKey field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+  # privateKeyPath: Authentication via private key path. (The privateKeyPath field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+  # default is privateKeyPath, Read the private key in the current user directory, ~/.ssh/id_rsa.
+  authType: privateKeyPath
+  username:
+  password:
+  privateKey:
+  privateKeyPath:
+
+version: v1.0.0
+
+jobs:
+  - name: lenkins-test
+    parameters:
+      service_name: xxx_service
+      environment: dev
+    steps:
+      - name: Clone
+        git:
+          repo: git@gitee.com:guoxinliu/lenkins.git
+          branch: master
+          # basic: Authentication via username and password.
+          # privateKey: Authenticated by private key. (The privateKey field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+          # privateKeyPath: Authentication via private key path. (The privateKeyPath field fills in the private key pem string; The password field fills in the private key password, if not, it can be empty).
+          # default is privateKeyPath, Read the private key in the current user directory, ~/.ssh/id_rsa.
+          authType: privateKeyPath
+          username:
+          password:
+          privateKey:
+          privateKeyPath:
+      - name: Compile
+        sh:
+          - "echo $PATH"
+          - "mkdir -p git://bin"
+          - "go build -o git://bin/lenkins"
+      - name: Send package to Server
+        scp:
+          type: upload # upload or download
+          servers:
+            - <<: *server-ref
+          remote: "/home/guoxin/Desktop/lenkins"
+          local: "git://bin/lenkins"
+      - name: Deploy
+        cmd:
+          servers:
+            - <<: *server-ref
+          cmd:
+            - "pwd; cp /home/guoxin/Desktop/lenkins /home/guoxin/Desktop/lenkins-bin"
+            - "/home/guoxin/Desktop/lenkins -h"
