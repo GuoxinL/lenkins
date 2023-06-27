@@ -76,9 +76,7 @@ func (p *Plugin) Validate() error {
 			return errors.New("the git privateKey parameter cannot be empty")
 		}
 	case privateKeyPathAuth:
-		if len(p.git.PrivateKeyPath) == 0 {
-			return errors.New("the git privateKeyPath parameter cannot be empty")
-		}
+		// privateKeyPathAuth can be empty
 	default:
 		return fmt.Errorf("git auth type %v not support", p.git.AuthType)
 	}

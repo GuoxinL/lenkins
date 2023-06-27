@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"os"
 )
@@ -13,7 +14,7 @@ func WriteFile(fileName string, content []byte) error {
 	} else {
 		n, _ := f.Seek(0, io.SeekEnd)
 		_, err = f.WriteAt(content, n)
-		fmt.Println("write succeed!")
+		zap.S().Info("write succeed!")
 		defer f.Close()
 	}
 	return err
