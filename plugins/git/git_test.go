@@ -34,7 +34,7 @@ func TestGit_Clone(t *testing.T) {
 				Username: "username",
 				Password: "password",
 			},
-			args:    args{filepath: home.Join("example", Dir)},
+			args:    args{filepath: home.DeployJoin("example", Dir)},
 			wantErr: true,
 		},
 		{
@@ -44,7 +44,7 @@ func TestGit_Clone(t *testing.T) {
 				Branch:   "master",
 				AuthType: privateKeyPathAuth,
 			},
-			args:    args{filepath: home.Join("example", Dir)},
+			args:    args{filepath: home.DeployJoin("example", Dir)},
 			wantErr: false,
 		},
 		{
@@ -61,7 +61,7 @@ func TestGit_Clone(t *testing.T) {
 					return rsa
 				}(),
 			},
-			args:    args{filepath: home.Join("example", Dir)},
+			args:    args{filepath: home.DeployJoin("example", Dir)},
 			wantErr: false,
 		},
 		{
@@ -82,7 +82,7 @@ func TestGit_Clone(t *testing.T) {
 					return string(key)
 				}(),
 			},
-			args:    args{filepath: home.Join("example", Dir)},
+			args:    args{filepath: home.DeployJoin("example", Dir)},
 			wantErr: false,
 		},
 	}

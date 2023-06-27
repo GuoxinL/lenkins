@@ -99,7 +99,7 @@ func (p *Plugin) Replace() error {
 }
 
 func (p *Plugin) Execute() error {
-	err := p.git.Clone(home.Join(p.JobName, Dir))
+	err := p.git.Clone(home.DeployJoin(p.JobName, Dir))
 	if err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (g *Git) Clone(filepath string) error {
 func ReplaceScheme(localPath, jobName string) string {
 	if strings.Contains(localPath, Scheme) {
 		localPath = strings.Replace(localPath, Scheme, "", -1)
-		localPath = home.Join(jobName, Dir, localPath)
+		localPath = home.DeployJoin(jobName, Dir, localPath)
 	}
 	return localPath
 

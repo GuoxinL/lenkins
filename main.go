@@ -57,7 +57,7 @@ func initMain(deploy string) {
 	if len(deploy) == 0 {
 		return
 	}
-	conf, _, err := config.LoadConfig(deploy)
+	conf, _, err := config.LoadYamlConfig(deploy)
 	if err != nil {
 		panic(err)
 		return
@@ -130,7 +130,7 @@ func initMain(deploy string) {
 }
 
 func clearJobCache(name string) {
-	cachePath := home.Join(name)
+	cachePath := home.DeployJoin(name)
 	_ = os.RemoveAll(cachePath)
 	zap.S().Infof("remove %v cache success. path: %v", name, cachePath)
 }
