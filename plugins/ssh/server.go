@@ -37,26 +37,24 @@ type Server struct {
 
 func (s Server) Validate() error {
 	if len(s.Username) == 0 {
-		return errors.New("the cmd username parameter cannot be empty")
+		return errors.New("the username parameter cannot be empty")
 	}
 	if len(s.Host) == 0 {
-		return errors.New("the cmd host parameter cannot be empty")
+		return errors.New("the host parameter cannot be empty")
 	}
 	switch s.AuthType {
 	case passwordAuth:
 		if len(s.Password) != 0 {
-			return errors.New("the cmd password parameter cannot be empty")
+			return errors.New("the password parameter cannot be empty")
 		}
 	case privateKeyAuth:
 		if len(s.PrivateKey) != 0 {
-			return errors.New("the cmd privateKey parameter cannot be empty")
+			return errors.New("the privateKey parameter cannot be empty")
 		}
 	case privateKeyPathAuth:
-		if len(s.PrivateKeyPath) != 0 {
-			return errors.New("the cmd privateKeyPath parameter cannot be empty")
-		}
+		// privateKeyPathAuth can be empty
 	default:
-		return fmt.Errorf("cmd auth type %v not support", s.AuthType)
+		return fmt.Errorf("auth type %v not support", s.AuthType)
 	}
 	return nil
 }
