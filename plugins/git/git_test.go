@@ -101,7 +101,7 @@ func TestGit_Clone(t *testing.T) {
 				PrivateKey:     tt.fields.PrivateKey,
 				PrivateKeyPath: tt.fields.PrivateKeyPath,
 			}
-			if err := g.Clone(tt.args.filepath); (err != nil) != tt.wantErr {
+			if err := g.Clone("", tt.args.filepath); (err != nil) != tt.wantErr {
 				t.Errorf("Clone() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
