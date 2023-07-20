@@ -8,6 +8,10 @@ package git
 import (
 	"errors"
 	"fmt"
+	"github.com/GuoxinL/lenkins/module/home"
+	"github.com/GuoxinL/lenkins/module/logger"
+	"github.com/GuoxinL/lenkins/plugins"
+	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -15,12 +19,6 @@ import (
 	"go.uber.org/zap"
 	"path"
 	"strings"
-	"time"
-
-	"github.com/GuoxinL/lenkins/module/home"
-	"github.com/GuoxinL/lenkins/module/logger"
-	"github.com/GuoxinL/lenkins/plugins"
-	"github.com/go-git/go-git/v5"
 )
 
 const (
@@ -202,7 +200,7 @@ func (g *Git) Clone(jobName, filepath string) error {
 	}
 
 	zap.S().Infof("[%v] get code success. branch: %v, last commit-id:[hash:%s,author:%s,date:%s,message:%s]",
-		jobName, g.Branch, commit.Hash, commit.Author.String(), commit.Author.When.Format(time.DateTime), commit.Message)
+		jobName, g.Branch, commit.Hash, commit.Author.String(), commit.Author.When.Format("2006-01-02 15:04:05"), commit.Message)
 	return err
 }
 
