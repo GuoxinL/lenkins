@@ -40,7 +40,7 @@ func LoadYamlConfig(path string) (*Config, *viper.Viper, error) {
 	)
 
 	if confViper, err = initYamlViper(path); err != nil {
-		return nil, nil, fmt.Errorf("load sdk config failed, %s", err)
+		return nil, nil, fmt.Errorf("load config failed, %s", err)
 	}
 
 	rootConf := &Config{}

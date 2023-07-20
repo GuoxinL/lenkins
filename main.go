@@ -5,6 +5,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -20,7 +22,8 @@ import (
 )
 
 const (
-	DeployPath = "conf"
+	DeployPath     = "config"
+	ParametersPath = "parameters-path"
 
 	SystemPath = "lenkins.log"
 )
@@ -33,16 +36,18 @@ var (
 ions, and remotely execute commands through a configuration file; it supports git plug-ins, sh plug-
 ins (local execution commands), cmd plug-ins (remote execution commands), scp plugins (upload or dow
 nload) etc.`),
-		Run: func(cmd *cobra.Command, args []string) {
-			initMain(deploy)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return initMain(configPath)
 		},
 	}
 
-	deploy string
+	configPath     string
+	parametersPath string
 )
 
 func init() {
-	root.PersistentFlags().StringVarP(&deploy, DeployPath, "c", "", "Deployment configuration file.")
+	root.PersistentFlags().StringVarP(&configPath, DeployPath, "c", "", "Configuration file.")
+	root.PersistentFlags().StringVarP(&parametersPath, ParametersPath, "p", "", "Parameters file path.")
 }
 
 func main() {
@@ -52,15 +57,14 @@ func main() {
 	}
 }
 
-func initMain(deploy string) {
+func initMain(deploy string) error {
 	logger.InitLog(path.Join(home.HomeLogs, SystemPath), zap.DebugLevel)
 	if len(deploy) == 0 {
-		return
+		return errors.New("the configuration file cannot be empty")
 	}
 	conf, _, err := config.LoadYamlConfig(deploy)
 	if err != nil {
-		panic(err)
-		return
+		return err
 	}
 
 	// 构建PluginInfo
@@ -69,12 +73,12 @@ func initMain(deploy string) {
 		marshal, err := json.Marshal(job)
 		if err != nil {
 			zap.S().Errorf("[%v] json marshal failed. error: %v", job.Name, err)
-			return
+			return fmt.Errorf("[%v] json marshal failed. error: %v", job.Name, err)
 		}
 		zap.S().Info(string(marshal))
 		zap.S().Info("构建名称：", job.Name)
-		zap.S().Info("构建参数：", job.Parameters)
-		clearJobCache(job.Name)
+		zap.S().Debug("构建参数：", job.Parameters)
+		//clearJobCache(job.Name)
 		for _, step := range job.Steps {
 			zap.S().Info("步骤名称：", step.Name)
 			for pluginName, pluginParameter := range step.Plugin {
@@ -88,13 +92,13 @@ func initMain(deploy string) {
 	for _, info := range pluginInfos {
 		newPlugin, ok := plugin.Plugins[info.PluginName]
 		if !ok {
-			zap.S().Errorf("[%v] new plugin failed. plugin not support", info.PluginName)
-			return
+			zap.S().Errorf("[%v] new plugin failed. plugin not support.", info.PluginName)
+			return fmt.Errorf("[%v] new plugin failed. plugin not support", info.PluginName)
 		}
 		pluginIns, err := newPlugin(info)
 		if err != nil {
 			zap.S().Errorf("[%s] new plugin failed. error: %v", info.PluginName, err)
-			return
+			return fmt.Errorf("[%s] new plugin failed. error: %v", info.PluginName, err)
 		}
 		pluginInstance = append(pluginInstance, pluginIns)
 		zap.S().Infof("[%v] new plugin success.", info.PluginName)
@@ -104,7 +108,7 @@ func initMain(deploy string) {
 		err = pluginInstance[i].Replace()
 		if err != nil {
 			zap.S().Errorf("[%v] replace parameter failed. error: %v", pluginInstance[i].Name(), err)
-			return
+			return fmt.Errorf("[%v] replace parameter failed. error: %v", pluginInstance[i].Name(), err)
 		}
 		zap.S().Infof("[%v] replace parameter success.", pluginInstance[i].Name())
 	}
@@ -113,7 +117,7 @@ func initMain(deploy string) {
 		err = pluginInstance[i].Validate()
 		if err != nil {
 			zap.S().Errorf("[%v] validate parameter failed. error: %v", pluginInstance[i].Name(), err)
-			return
+			return fmt.Errorf("[%v] validate parameter failed. error: %v", pluginInstance[i].Name(), err)
 		}
 		zap.S().Infof("[%v] validate parameter success.", pluginInstance[i].Name())
 	}
@@ -122,11 +126,12 @@ func initMain(deploy string) {
 		err = pluginInstance[i].Execute()
 		if err != nil {
 			zap.S().Errorf("[%v] execute failed. error: %v", pluginInstance[i].Name(), err)
-			return
+			return fmt.Errorf("[%v] execute failed. error: %v", pluginInstance[i].Name(), err)
 		}
 		zap.S().Infof("[%v] execute success.", pluginInstance[i].Name())
 	}
 
+	return nil
 }
 
 func clearJobCache(name string) {

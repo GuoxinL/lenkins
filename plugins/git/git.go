@@ -8,11 +8,14 @@ package git
 import (
 	"errors"
 	"fmt"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"go.uber.org/zap"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/GuoxinL/lenkins/module/home"
 	"github.com/GuoxinL/lenkins/module/logger"
@@ -97,7 +100,7 @@ func (p *Plugin) Replace() error {
 }
 
 func (p *Plugin) Execute() error {
-	err := p.git.Clone(home.DeployJoin(p.JobName, Dir))
+	err := p.git.Clone(p.JobName, home.DeployJoin(p.JobName, Dir))
 	if err != nil {
 		return err
 	}
@@ -114,7 +117,7 @@ type Git struct {
 	PrivateKeyPath string   `mapstructure:"privateKeyPath"`
 }
 
-func (g *Git) Clone(filepath string) error {
+func (g *Git) Clone(jobName, filepath string) error {
 	var (
 		auth transport.AuthMethod
 		err  error
@@ -137,8 +140,6 @@ func (g *Git) Clone(filepath string) error {
 			return fmt.Errorf("git auth type %v, obtain the public key from the private key failed", err)
 		}
 	case privateKeyPathAuth:
-		// Username must be "git" for SSH auth to work, not your real username.
-		// See https://github.com/src-d/go-git/issues/637
 		if len(g.PrivateKeyPath) == 0 {
 			sshIdRsa, err := home.CurrentSshIdRSA()
 			if err != nil {
@@ -146,7 +147,8 @@ func (g *Git) Clone(filepath string) error {
 			}
 			g.PrivateKeyPath = sshIdRsa
 		}
-
+		// Username must be "git" for SSH auth to work, not your real username.
+		// See https://github.com/src-d/go-git/issues/637
 		auth, err = ssh.NewPublicKeysFromFile(goGitV5User, g.PrivateKeyPath, g.Password)
 		if err != nil {
 			return fmt.Errorf("git auth type %v, obtain the public key path from the private key failed", err)
@@ -154,11 +156,53 @@ func (g *Git) Clone(filepath string) error {
 	default:
 		return fmt.Errorf("git auth type %v not support", g.AuthType)
 	}
-	_, err = git.PlainClone(filepath, false, &git.CloneOptions{
-		Auth:     auth,
-		URL:      g.Repo,
-		Progress: logger.GetWriter(path.Join(home.HomeLogs, "lenkins.log")),
+	repo, err := git.PlainOpen(filepath)
+	if err != nil {
+		// 本地库不存在
+		zap.S().Debugf("[%v] the local repository does not exist. error: %v", jobName, err)
+		repo, err = git.PlainClone(filepath, false, &git.CloneOptions{
+			Auth:     auth,
+			URL:      g.Repo,
+			Progress: logger.GetWriter(path.Join(home.HomeLogs, "lenkins.log")),
+		})
+		if err != nil {
+			return fmt.Errorf("clone repository failed. error: %v", err)
+		}
+		zap.S().Infof("[%v] clone repository success.", jobName)
+	}
+	// 本地库存在
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("get worktree failed. error: %v", err)
+	}
+	err = worktree.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.ReferenceName("refs/remotes/origin/" + g.Branch),
 	})
+	if err != nil {
+		return fmt.Errorf("git checkout %v failed. error: %v", g.Branch, err)
+	}
+	err = worktree.Pull(&git.PullOptions{
+		Auth:       auth,
+		RemoteName: "origin", Force: true,
+	})
+	if err != nil {
+		if err != git.NoErrAlreadyUpToDate {
+			return fmt.Errorf("git pull failed. error: %v", err)
+		}
+	}
+
+	// Print the latest commit that was just pulled
+	ref, err := repo.Head()
+	if err != nil {
+		return fmt.Errorf("repository head failed. error: %v", err)
+	}
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		return fmt.Errorf("repository head failed. error: %v", err)
+	}
+
+	zap.S().Infof("[%v] get code success. branch: %v, last commit-id:[hash:%s,author:%s,date:%s,message:%s]",
+		jobName, g.Branch, commit.Hash, commit.Author.String(), commit.Author.When.Format(time.DateTime), commit.Message)
 	return err
 }
 
@@ -168,5 +212,4 @@ func ReplaceScheme(localPath, jobName string) string {
 		localPath = home.DeployJoin(jobName, Dir, localPath)
 	}
 	return localPath
-
 }
