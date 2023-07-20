@@ -42,6 +42,9 @@ func (s Server) Validate() error {
 	if len(s.Host) == 0 {
 		return errors.New("the host parameter cannot be empty")
 	}
+	if len(s.AuthType) == 0 {
+		s.AuthType = privateKeyAuth
+	}
 	switch s.AuthType {
 	case passwordAuth:
 		if len(s.Password) != 0 {
@@ -54,7 +57,7 @@ func (s Server) Validate() error {
 	case privateKeyPathAuth:
 		// privateKeyPathAuth can be empty
 	default:
-		return fmt.Errorf("auth type %v not support", s.AuthType)
+		return fmt.Errorf("server auth type %v not support", s.AuthType)
 	}
 	return nil
 }
