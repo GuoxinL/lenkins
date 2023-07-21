@@ -47,11 +47,11 @@ func (s Server) Validate() error {
 	}
 	switch s.AuthType {
 	case passwordAuth:
-		if len(s.Password) != 0 {
+		if len(s.Password) == 0 {
 			return errors.New("the password parameter cannot be empty")
 		}
 	case privateKeyAuth:
-		if len(s.PrivateKey) != 0 {
+		if len(s.PrivateKey) == 0 {
 			return errors.New("the privateKey parameter cannot be empty")
 		}
 	case privateKeyPathAuth:
